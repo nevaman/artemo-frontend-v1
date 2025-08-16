@@ -37,7 +37,7 @@ const NavLink: React.FC<{
     <a
         href="#"
         onClick={(e) => { e.preventDefault(); onNavigate(view); }}
-        className={`flex items-center gap-3 px-2.5 py-2 rounded-sm text-base font-medium transition-colors ${
+        className={`flex items-center gap-3 px-2.5 py-2 rounded-sm text-sm font-medium transition-colors ${
             currentView === view
                 ? 'bg-light-bg-page dark:bg-dark-bg-page text-light-text-primary dark:text-dark-text-primary'
                 : 'text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-page dark:hover:bg-dark-bg-page hover:text-light-text-primary dark:hover:text-dark-text-primary'
@@ -69,10 +69,10 @@ const UserMenu: React.FC = () => {
             <div
                 className={`absolute bottom-full left-0 w-full mb-2 p-2 bg-light-bg-component dark:bg-dark-bg-component border border-light-border dark:border-dark-border rounded-md shadow-lg transition-all duration-200 ${isOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'}`}
             >
-                <a href="#" className="flex items-center gap-3 px-3 py-2 text-base rounded-sm text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-sidebar dark:hover:bg-dark-bg-sidebar hover:text-light-text-primary dark:hover:text-dark-text-primary"><SettingsIcon className="w-4 h-4" />Settings</a>
-                <a href="#" className="flex items-center gap-3 px-3 py-2 text-base rounded-sm text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-sidebar dark:hover:bg-dark-bg-sidebar hover:text-light-text-primary dark:hover:text-dark-text-primary"><HelpCircleIcon className="w-4 h-4" />Get Help</a>
+                <a href="#" className="flex items-center gap-3 px-3 py-2 text-sm rounded-sm text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-sidebar dark:hover:bg-dark-bg-sidebar hover:text-light-text-primary dark:hover:text-dark-text-primary"><SettingsIcon className="w-4 h-4" />Settings</a>
+                <a href="#" className="flex items-center gap-3 px-3 py-2 text-sm rounded-sm text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-sidebar dark:hover:bg-dark-bg-sidebar hover:text-light-text-primary dark:hover:text-dark-text-primary"><HelpCircleIcon className="w-4 h-4" />Get Help</a>
                 <div className="h-px bg-light-border dark:bg-dark-border my-2"></div>
-                <a href="#" className="flex items-center gap-3 px-3 py-2 text-base rounded-sm text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-sidebar dark:hover:bg-dark-bg-sidebar hover:text-light-text-primary dark:hover:text-dark-text-primary"><LogOutIcon className="w-4 h-4" />Log Out</a>
+                <a href="#" className="flex items-center gap-3 px-3 py-2 text-sm rounded-sm text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-sidebar dark:hover:bg-dark-bg-sidebar hover:text-light-text-primary dark:hover:text-dark-text-primary"><LogOutIcon className="w-4 h-4" />Log Out</a>
             </div>
             <div
                 className="flex items-center gap-3 cursor-pointer border-t border-light-border dark:border-dark-border -mx-4 px-4 pt-4"
@@ -80,7 +80,7 @@ const UserMenu: React.FC = () => {
             >
                 <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center font-semibold text-white">AS</div>
                 <div className="flex-grow">
-                    <p className="text-base font-medium text-light-text-primary dark:text-dark-text-primary">Arminorum's Workspace</p>
+                    <p className="text-sm font-medium text-light-text-primary dark:text-dark-text-primary">Arminorum's Workspace</p>
                 </div>
             </div>
         </div>
@@ -98,7 +98,7 @@ const CollapsibleSection: React.FC<{
         <div>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center justify-between w-full text-left px-2.5 py-2 text-base font-medium text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-page dark:hover:bg-dark-bg-page hover:text-light-text-primary dark:hover:text-dark-text-primary rounded-sm"
+                className="flex items-center justify-between w-full text-left px-2.5 py-2 text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-page dark:hover:bg-dark-bg-page hover:text-light-text-primary dark:hover:text-dark-text-primary rounded-sm"
             >
                 <div className="flex items-center gap-3">
                     {icon}
@@ -174,13 +174,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
     const recentToolsData = recentTools.map(id => allTools.find(t => t.id === id)).filter(Boolean) as Tool[];
 
     return (
-        <aside className={`fixed lg:relative top-0 left-0 h-full w-[260px] bg-light-bg-sidebar dark:bg-dark-bg-sidebar border-r border-light-border dark:border-dark-border flex flex-col p-4 z-50 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+        <aside className={`fixed lg:relative top-0 left-0 h-full w-[280px] bg-light-bg-sidebar dark:bg-dark-bg-sidebar border-r border-light-border dark:border-dark-border flex flex-col p-4 z-50 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
             <div className="flex-grow overflow-y-auto pr-1">
                 <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('dashboard-view'); }} className="flex items-center p-2 mb-6">
                     <ArtemoFullLogo className="h-8" />
                 </a>
 
-                <button onClick={onNewProject} className="flex items-center justify-center gap-2 w-full p-2.5 mb-4 rounded-sm border-none text-base font-medium cursor-pointer bg-primary-accent text-text-on-accent hover:opacity-85 transition-opacity">
+                <button onClick={onNewProject} className="flex items-center justify-center gap-2 w-full p-2.5 mb-4 rounded-sm border-none text-sm font-medium cursor-pointer bg-primary-accent text-text-on-accent hover:opacity-85 transition-opacity">
                     <PlusIcon className="w-4 h-4" />
                     <span>New Project</span>
                 </button>
@@ -192,7 +192,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         placeholder="Find a tool..."
                         value={searchTerm}
                         onChange={(e) => onSearchChange(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2 text-base rounded-sm border border-light-border dark:border-dark-border bg-light-bg-component dark:bg-dark-bg-component text-light-text-secondary dark:text-dark-text-secondary focus:ring-2 focus:ring-primary-accent focus:outline-none"
+                        className="w-full pl-9 pr-3 py-2 text-sm rounded-sm border border-light-border dark:border-dark-border bg-light-bg-component dark:bg-dark-bg-component text-light-text-secondary dark:text-dark-text-secondary focus:ring-2 focus:ring-primary-accent focus:outline-none"
                     />
                 </div>
 
@@ -238,7 +238,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                 <div className="mt-4 flex flex-col gap-1">
                     {projects.map((project) => (
-                        <div key={project.id} className="group flex items-center justify-between text-base font-medium rounded-sm text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-page dark:hover:bg-dark-bg-page hover:text-light-text-primary dark:hover:text-dark-text-primary">
+                        <div key={project.id} className="group flex items-center justify-between text-sm font-medium rounded-sm text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-page dark:hover:bg-dark-bg-page hover:text-light-text-primary dark:hover:text-dark-text-primary">
                             <a href="#" onClick={e => e.preventDefault()} className="flex-grow flex items-center gap-3 px-2.5 py-2">
                                 <FolderIcon className="w-4 h-4" />
                                 <span className="truncate">{project.name}</span>
@@ -256,11 +256,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             <footer className="flex-shrink-0">
                  <div className="flex flex-col gap-1 mb-4">
-                    <a href="#" className="flex items-center gap-3 px-2.5 py-2 rounded-sm text-base font-medium text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-page dark:hover:bg-dark-bg-page hover:text-light-text-primary dark:hover:text-dark-text-primary">
+                    <a href="#" className="flex items-center gap-3 px-2.5 py-2 rounded-sm text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-page dark:hover:bg-dark-bg-page hover:text-light-text-primary dark:hover:text-dark-text-primary">
                         <UsersIcon className="w-4 h-4" />
                         <span>Join our community</span>
                     </a>
-                    <a href="#" className="flex items-center gap-3 px-2.5 py-2 rounded-sm text-base font-medium text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-page dark:hover:bg-dark-bg-page hover:text-light-text-primary dark:hover:text-dark-text-primary">
+                    <a href="#" className="flex items-center gap-3 px-2.5 py-2 rounded-sm text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-page dark:hover:bg-dark-bg-page hover:text-light-text-primary dark:hover:text-dark-text-primary">
                         <UserPlusIcon className="w-4 h-4" />
                         <span>Invite members</span>
                     </a>
