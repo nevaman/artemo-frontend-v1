@@ -230,6 +230,7 @@ const App: React.FC = () => {
                     theme={theme}
                     onToggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
                     searchTerm={searchTerm}
+                    onSearchChange={handleSearchChange}
                     favoriteTools={favoriteTools}
                     onToggleFavorite={handleToggleFavorite}
                     onSaveChat={handleSaveChat}
