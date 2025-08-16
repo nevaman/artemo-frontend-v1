@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import type { Tool, ToolCategory } from '../types';
 import { ToolCard } from './ToolCard';
-import { ChevronDownIcon, UsersIcon, EditIcon, MessageSquareIcon, MailIcon, FileTextIcon, MicIcon, ActivityIcon, BellIcon } from './Icons';
+import { ChevronDownIcon, UsersIcon, EditIcon, MessageSquareIcon, MailIcon, FileTextIcon, MicIcon, ActivityIcon, BellIcon, SearchIcon } from './Icons';
 import { allCategories } from '../constants';
 
 interface AllToolsViewProps {
@@ -11,6 +11,8 @@ interface AllToolsViewProps {
     showNoResults?: boolean;
     favoriteTools: string[];
     onToggleFavorite: (toolId: string) => void;
+    searchTerm?: string;
+    onSearchChange?: (value: string) => void;
 }
 
 const categoryIcons: { [key in ToolCategory]: React.FC<{ className?: string }> } = {
@@ -76,7 +78,15 @@ const CollapsibleCategory: React.FC<{
 };
 
 
-export const AllToolsView: React.FC<AllToolsViewProps> = ({ tools, onInitiateToolActivation, showNoResults, favoriteTools, onToggleFavorite }) => {
+export const AllToolsView: React.FC<AllToolsViewProps> = ({ tools, onInitiateToolActivation, showNoResults, favoriteTools, onToggleFavorite, searchTerm = '', onSearchChange }) => {
+    const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
+
+    const handleSearchChange = (value: string) => {
+        setLocalSearchTerm(value);
+        if (onSearchChange) {
+            onSearchChange(value);
+        }
+    };
 
     const groupedTools = useMemo(() => {
         const groups: { [key in ToolCategory]?: Tool[] } = {};
@@ -93,7 +103,19 @@ export const AllToolsView: React.FC<AllToolsViewProps> = ({ tools, onInitiateToo
 
     return (
         <div className="p-4 lg:p-6 max-w-5xl mx-auto w-full">
-            <h2 className="font-serif text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-8">All Tools</h2>
+            <div className="flex justify-between items-center mb-8">
+                <h2 className="font-serif text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">All Tools</h2>
+                <div className="relative w-80">
+                    <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-light-text-tertiary dark:text-dark-text-tertiary" />
+                    <input
+                        type="text"
+                        placeholder="Search tools..."
+                        value={localSearchTerm}
+                        onChange={(e) => handleSearchChange(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 text-sm rounded-sm border border-light-border dark:border-dark-border bg-light-bg-component dark:bg-dark-bg-component text-light-text-secondary dark:text-dark-text-secondary focus:ring-2 focus:ring-primary-accent focus:outline-none"
+                    />
+                </div>
+            </div>
             {showNoResults ? (
                  <div className="text-center py-12 text-light-text-tertiary dark:text-dark-text-tertiary">
                     <h3 className="text-lg font-semibold">No results found</h3>

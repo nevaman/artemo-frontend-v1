@@ -44,6 +44,10 @@ export const MainContent: React.FC<MainContentProps> = ({
     onOpenRenameModal,
     onDeleteProject,
 }) => {
+    const handleSearchChange = (value: string) => {
+        onSearchChange(value);
+    };
+
     const renderView = () => {
         if (currentView === 'tool-interface-view' && selectedTool) {
             return <ToolInterfaceView tool={selectedTool} onBack={() => onNavigate('dashboard-view')} onSaveChat={onSaveChat} projects={projects} onNewProject={onNewProject} />;
@@ -61,7 +65,7 @@ export const MainContent: React.FC<MainContentProps> = ({
             case 'dashboard-view':
                 return <DashboardView {...toolGridProps} />;
             case 'all-tools-view':
-                return <AllToolsView tools={filteredTools} showNoResults={searchTerm.length > 0 && filteredTools.length === 0} {...toolGridProps} />;
+                return <AllToolsView tools={filteredTools} showNoResults={searchTerm.length > 0 && filteredTools.length === 0} searchTerm={searchTerm} onSearchChange={handleSearchChange} {...toolGridProps} />;
             case 'all-projects-view':
                 return <AllProjectsView projects={projects} onNewProject={onNewProject} onOpenRenameModal={onOpenRenameModal} onDeleteProject={onDeleteProject} />;
             case 'history-view':
