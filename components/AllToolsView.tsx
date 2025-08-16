@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import type { Tool, ToolCategory } from '../types';
 import { ToolCard } from './ToolCard';
-import { ChevronDownIcon } from './Icons';
+import { ChevronDownIcon, UsersIcon, EditIcon, MessageSquareIcon, MailIcon, FileTextIcon, MicIcon, ActivityIcon, BellIcon } from './Icons';
 import { allCategories } from '../constants';
 
 interface AllToolsViewProps {
@@ -13,6 +13,28 @@ interface AllToolsViewProps {
     onToggleFavorite: (toolId: string) => void;
 }
 
+const categoryIcons: { [key in ToolCategory]: React.FC<{ className?: string }> } = {
+    AD_COPY: MessageSquareIcon,
+    CLIENT_MANAGEMENT: UsersIcon,
+    COPY_IMPROVEMENT: EditIcon,
+    EMAIL_COPY: MailIcon,
+    LONG_FORM: FileTextIcon,
+    OTHER_FLOWS: BellIcon,
+    PODCAST_TOOLS: MicIcon,
+    SALES_FUNNEL_COPY: ActivityIcon,
+};
+
+const categoryLabels: { [key in ToolCategory]: string } = {
+    AD_COPY: 'Ad Copy',
+    CLIENT_MANAGEMENT: 'Client Management',
+    COPY_IMPROVEMENT: 'Copy Improvement',
+    EMAIL_COPY: 'Email Copy',
+    LONG_FORM: 'Long Form Content',
+    OTHER_FLOWS: 'Other',
+    PODCAST_TOOLS: 'Podcast Tools',
+    SALES_FUNNEL_COPY: 'Sales & Funnel Copy',
+};
+
 const CollapsibleCategory: React.FC<{
     category: ToolCategory;
     tools: Tool[];
@@ -21,7 +43,8 @@ const CollapsibleCategory: React.FC<{
     onToggleFavorite: (toolId: string) => void;
 }> = ({ category, tools, onInitiateToolActivation, favoriteTools, onToggleFavorite }) => {
     const [isOpen, setIsOpen] = useState(true);
-    const categoryName = category.replace(/_/g, ' ');
+    const categoryName = categoryLabels[category];
+    const CategoryIcon = categoryIcons[category];
 
     return (
         <div className="mb-6">
@@ -29,7 +52,10 @@ const CollapsibleCategory: React.FC<{
                 onClick={() => setIsOpen(!isOpen)}
                 className="w-full flex justify-between items-center py-3 px-4 bg-light-bg-sidebar dark:bg-dark-bg-component rounded-md transition-colors hover:bg-light-border dark:hover:bg-dark-border/20"
             >
-                <h3 className="font-serif text-xl font-bold text-light-text-primary dark:text-dark-text-primary">{categoryName}</h3>
+                <div className="flex items-center gap-3">
+                    <CategoryIcon className="w-5 h-5 text-primary-accent" />
+                    <h3 className="font-serif text-xl font-bold text-light-text-primary dark:text-dark-text-primary">{categoryName}</h3>
+                </div>
                 <ChevronDownIcon className={`w-5 h-5 text-light-text-secondary dark:text-dark-text-secondary transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
             {isOpen && (

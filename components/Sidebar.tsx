@@ -235,9 +235,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                 <div className="h-px bg-light-border dark:bg-dark-border my-2"></div>
                 
-                <nav className="flex flex-col gap-1">
-                    {categoryNavItems.map(item => <NavLink key={item.view} {...item} currentView={currentView} onNavigate={onNavigate} />)}
-                </nav>
 
                 <div className="mt-4 flex flex-col gap-1">
                     {projects.map((project) => (
