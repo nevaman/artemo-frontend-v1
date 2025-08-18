@@ -94,10 +94,21 @@ const CollapsibleSection: React.FC<{
     headerAction?: React.ReactNode;
 }> = ({ title, icon, children, headerAction }) => {
     const [isOpen, setIsOpen] = useState(false);
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setIsOpen(!isOpen);
+        }
+    };
+
     return (
         <div>
-            <button
+            <div
+                role="button"
+                tabIndex={0}
                 onClick={() => setIsOpen(!isOpen)}
+                onKeyDown={handleKeyDown}
                 className="flex items-center justify-between w-full text-left px-2.5 py-2 text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-page dark:hover:bg-dark-bg-page hover:text-light-text-primary dark:hover:text-dark-text-primary rounded-sm"
             >
                 <div className="flex items-center gap-3">
@@ -108,7 +119,7 @@ const CollapsibleSection: React.FC<{
                     {headerAction && <div onClick={e => e.stopPropagation()}>{headerAction}</div>}
                     <ChevronDownIcon className={`w-4 h-4 ml-2 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </div>
-            </button>
+            </div>
             {isOpen && <div className="pl-4 pt-2 pb-1 space-y-1">{children}</div>}
         </div>
     );
