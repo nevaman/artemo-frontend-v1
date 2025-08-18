@@ -10,8 +10,7 @@ interface AuthWrapperProps {
 export const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
   const { user, loading } = useAuth();
 
-  // Force show login form for debugging
-  console.log('AuthWrapper - User:', user, 'Loading:', loading);
+  console.log('AuthWrapper - User:', !!user, 'Loading:', loading);
 
   if (loading) {
     return (

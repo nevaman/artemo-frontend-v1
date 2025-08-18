@@ -14,17 +14,11 @@ export const useAuth = () => {
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
-      setLoading(true)
-      
-      // Clear any existing session data
-      setSession(null)
-      setUser(null)
-      setProfile(null)
-      setIsAdmin(false)
-      
       try {
         const currentSession = await authService.getCurrentSession()
         const currentUser = await authService.getCurrentUser()
+        
+        console.log('Initial session check:', { currentSession: !!currentSession, currentUser: !!currentUser })
         
         setSession(currentSession)
         setUser(currentUser)
@@ -32,6 +26,7 @@ export const useAuth = () => {
         if (currentUser) {
           try {
             const userProfile = await authService.getUserProfile(currentUser.id)
+            console.log('User profile:', userProfile)
             setProfile(userProfile)
             setIsAdmin(userProfile?.role === 'admin' && userProfile?.active === true)
           } catch (profileError) {
@@ -39,14 +34,17 @@ export const useAuth = () => {
             setProfile(null)
             setIsAdmin(false)
           }
+        } else {
+          console.log('No current user found')
         }
       } catch (error) {
-        console.log('No active session found, showing login')
+        console.log('Error getting initial session:', error)
         setSession(null)
         setUser(null)
         setProfile(null)
         setIsAdmin(false)
       } finally {
+        console.log('Setting loading to false')
         setLoading(false)
       }
     }
@@ -56,7 +54,7 @@ export const useAuth = () => {
     // Listen for auth changes
     const { data: { subscription } } = authService.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event)
+        console.log('Auth state changed:', event, 'Session:', !!session)
         
         setSession(session)
         setUser(session?.user ?? null)
@@ -75,8 +73,11 @@ export const useAuth = () => {
           setProfile(null)
           setIsAdmin(false)
         }
-
-        setLoading(false)
+        
+        // Only set loading to false if we're not in the initial load
+        if (!loading) {
+          setLoading(false)
+        }
       }
     )
 
