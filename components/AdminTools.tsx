@@ -420,12 +420,19 @@ export const AdminTools: React.FC = () => {
                           </button>
                         </div>
                         <div className="space-y-3">
-                          <input
+                          <textarea
                             type="text"
                             value={question.label}
                             onChange={(e) => updateQuestion(question.id, { label: e.target.value })}
                             placeholder="Question text"
-                            className="w-full p-2 border border-light-border dark:border-dark-border rounded-md bg-light-bg-component dark:bg-dark-bg-component text-light-text-primary dark:text-dark-text-primary focus:ring-2 focus:ring-primary-accent focus:border-primary-accent outline-none text-sm"
+                            className="w-full p-2 border border-light-border dark:border-dark-border rounded-md bg-light-bg-component dark:bg-dark-bg-component text-light-text-primary dark:text-dark-text-primary focus:ring-2 focus:ring-primary-accent focus:border-primary-accent outline-none text-sm resize-none overflow-hidden min-h-[40px]"
+                            rows={1}
+                            style={{ height: 'auto' }}
+                            onInput={(e) => {
+                              const target = e.target as HTMLTextAreaElement;
+                              target.style.height = 'auto';
+                              target.style.height = target.scrollHeight + 'px';
+                            }}
                           />
                           <div className="flex gap-4">
                             <select
