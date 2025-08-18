@@ -27,6 +27,7 @@ export class AuthService {
         email,
         password,
         options: {
+          emailRedirectTo: undefined, // Disable email confirmation
           data: {
             full_name: fullName
           }

@@ -45,7 +45,7 @@ export const LoginForm: React.FC = () => {
               {isLogin ? 'Welcome back' : 'Create account'}
             </h1>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mt-2">
-              {isLogin ? 'Sign in to your account' : 'Get started with Artemo AI'}
+              {isLogin ? 'Sign in to your account' : 'Get started with Artemo AI (no email verification required)'}
             </p>
           </div>
 

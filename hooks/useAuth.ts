@@ -14,6 +14,7 @@ export const useAuth = () => {
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
+      setLoading(true);
       try {
         const currentSession = await authService.getCurrentSession()
         const currentUser = await authService.getCurrentUser()
@@ -22,12 +23,22 @@ export const useAuth = () => {
         setUser(currentUser)
 
         if (currentUser) {
-          const userProfile = await authService.getUserProfile(currentUser.id)
-          setProfile(userProfile)
-          setIsAdmin(userProfile?.role === 'admin' && userProfile?.active === true)
+          try {
+            const userProfile = await authService.getUserProfile(currentUser.id)
+            setProfile(userProfile)
+            setIsAdmin(userProfile?.role === 'admin' && userProfile?.active === true)
+          } catch (profileError) {
+            console.log('Profile not found, user may need to complete setup')
+            setProfile(null)
+            setIsAdmin(false)
+          }
         }
       } catch (error) {
-        console.error('Error getting initial session:', error)
+        console.log('No active session found')
+        setSession(null)
+        setUser(null)
+        setProfile(null)
+        setIsAdmin(false)
       } finally {
         setLoading(false)
       }
@@ -38,15 +49,21 @@ export const useAuth = () => {
     // Listen for auth changes
     const { data: { subscription } } = authService.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session)
+        console.log('Auth state changed:', event)
         
         setSession(session)
         setUser(session?.user ?? null)
 
         if (session?.user) {
-          const userProfile = await authService.getUserProfile(session.user.id)
-          setProfile(userProfile)
-          setIsAdmin(userProfile?.role === 'admin' && userProfile?.active === true)
+          try {
+            const userProfile = await authService.getUserProfile(session.user.id)
+            setProfile(userProfile)
+            setIsAdmin(userProfile?.role === 'admin' && userProfile?.active === true)
+          } catch (profileError) {
+            console.log('Profile not found for new user')
+            setProfile(null)
+            setIsAdmin(false)
+          }
         } else {
           setProfile(null)
           setIsAdmin(false)

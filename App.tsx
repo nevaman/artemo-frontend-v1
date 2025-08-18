@@ -71,7 +71,15 @@ const RenameModal: React.FC<{
 
 const AppContent: React.FC = () => {
     const { isAdmin } = useAuth();
-    const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+    
+    // Force light theme initially to avoid flash
+    const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('theme');
+            return (saved as 'light' | 'dark') || 'light';
+        }
+        return 'light';
+    });
     const [currentView, setCurrentView] = useState<View>('dashboard-view');
     const [isAdminMode, setIsAdminMode] = useState(false);
     const [selectedTool, setSelectedTool] = useState<DynamicTool | null>(null);
