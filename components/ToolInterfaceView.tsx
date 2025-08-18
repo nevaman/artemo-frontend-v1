@@ -116,7 +116,7 @@ export const ToolInterfaceView: React.FC<ToolInterfaceViewProps> = ({ tool, onBa
     useEffect(() => {
         currentProjectIdRef.current = currentProjectId;
     }, [currentProjectId]);
-    const api = ApiService.getInstance();
+    const api = SupabaseApiService.getInstance();
     const sortedQuestions = useMemo(() => 
         [...tool.questions].sort((a, b) => a.order - b.order), 
         [tool.questions]
