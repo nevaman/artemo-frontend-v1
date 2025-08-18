@@ -10,9 +10,10 @@ interface AuthWrapperProps {
 export const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
   const { user, loading } = useAuth();
 
-  console.log('AuthWrapper - User:', !!user, 'Loading:', loading);
+  console.log('AuthWrapper - User:', !!user, 'Loading:', loading, 'User object:', user ? 'exists' : 'null');
 
   if (loading) {
+    console.log('Showing loading screen...');
     return (
       <div className="min-h-screen bg-light-bg-page dark:bg-dark-bg-page flex items-center justify-center">
         <div className="text-center">

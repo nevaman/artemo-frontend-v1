@@ -36,6 +36,8 @@ export const useAuth = () => {
           }
         } else {
           console.log('No current user found')
+          setProfile(null)
+          setIsAdmin(false)
         }
       } catch (error) {
         console.log('Error getting initial session:', error)
@@ -74,17 +76,15 @@ export const useAuth = () => {
           setIsAdmin(false)
         }
         
-        // Only set loading to false if we're not in the initial load
-        if (!loading) {
-          setLoading(false)
-        }
+        // Always set loading to false after auth state change
+        setLoading(false)
       }
     )
 
     return () => {
       subscription.unsubscribe()
     }
-  }, [])
+  }, [authService])
 
   const signIn = async (email: string, password: string) => {
     setLoading(true)
