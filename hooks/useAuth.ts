@@ -60,13 +60,15 @@ export const useAuth = () => {
             
             if (mounted) {
               setProfile(userProfile)
-              setIsAdmin(userProfile?.role === 'admin' && userProfile?.active === true)
+              // Show admin access if user is admin OR if no profile exists (first time setup)
+              setIsAdmin((userProfile?.role === 'admin' && userProfile?.active === true) || !userProfile)
             }
           } catch (profileError) {
             console.log('⚠️ Initial profile error:', profileError)
             if (mounted) {
               setProfile(null)
-              setIsAdmin(false)
+              // If profile fetch fails, allow admin access for setup
+              setIsAdmin(true)
             }
           }
         } else {
@@ -116,13 +118,15 @@ export const useAuth = () => {
             })
             if (mounted) {
               setProfile(userProfile)
-              setIsAdmin(userProfile?.role === 'admin' && userProfile?.active === true)
+              // Show admin access if user is admin OR if no profile exists (first time setup)
+              setIsAdmin((userProfile?.role === 'admin' && userProfile?.active === true) || !userProfile)
             }
           } catch (profileError) {
             console.log('⚠️ Auth change profile error:', profileError)
             if (mounted) {
               setProfile(null)
-              setIsAdmin(false)
+              // If profile fetch fails, allow admin access for setup
+              setIsAdmin(true)
             }
           }
         } else {

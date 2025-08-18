@@ -70,7 +70,7 @@ const RenameModal: React.FC<{
 
 
 const AppContent: React.FC = () => {
-    const { isAdmin } = useAuth();
+    const { isAdmin, user, profile } = useAuth();
     
     // Force light theme initially to avoid flash
     const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -307,12 +307,12 @@ const AppContent: React.FC = () => {
             </div>
             
             {/* Admin Access Button - Only show for admins */}
-            {isAdmin && (
+            {(isAdmin || (user && !profile)) && (
                 <button
                     onClick={() => handleNavigate('admin-dashboard')}
-                    className="fixed bottom-4 right-4 px-4 py-2 bg-red-600 text-white rounded-md shadow-lg hover:bg-red-700 transition-colors z-50"
+                    className="fixed bottom-4 right-4 px-4 py-2 bg-red-600 text-white rounded-md shadow-lg hover:bg-red-700 transition-colors z-50 text-sm"
                 >
-                    Admin Panel
+                    {isAdmin ? 'Admin Panel' : 'Setup Admin'}
                 </button>
             )}
             
