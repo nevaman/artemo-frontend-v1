@@ -43,7 +43,7 @@ export const AdminTools: React.FC = () => {
     questions: [] as AdminToolQuestion[],
   });
 
-  const models = ['ChatGPT', 'Claude', 'Grok', 'Gemini'];
+  const models = ['ChatGPT', 'Claude'];
 
   const handleCreate = () => {
     setEditingTool(null);

@@ -61,12 +61,6 @@ Please generate a comprehensive response based on the tool configuration and use
         case 'Claude':
           aiResponse = await callAnthropic(systemPrompt, messages)
           break
-        case 'Grok':
-          aiResponse = await callGrok(systemPrompt, messages)
-          break
-        case 'Gemini':
-          aiResponse = await callGemini(systemPrompt, messages)
-          break
         default:
           // Fallback to OpenAI
           aiResponse = await callOpenAI(systemPrompt, messages)
@@ -84,12 +78,6 @@ Please generate a comprehensive response based on the tool configuration and use
               break
             case 'Claude':
               aiResponse = await callAnthropic(systemPrompt, messages)
-              break
-            case 'Grok':
-              aiResponse = await callGrok(systemPrompt, messages)
-              break
-            case 'Gemini':
-              aiResponse = await callGemini(systemPrompt, messages)
               break
           }
           break // Success with fallback
@@ -185,44 +173,4 @@ async function callAnthropic(systemPrompt: string, messages: any[]): Promise<str
 
   const data = await response.json()
   return data.content[0].text
-}
-
-async function callGrok(systemPrompt: string, messages: any[]): Promise<string> {
-  // Placeholder for Grok API - replace with actual implementation when available
-  throw new Error('Grok API not yet implemented')
-}
-
-async function callGemini(systemPrompt: string, messages: any[]): Promise<string> {
-  const apiKey = Deno.env.get('GEMINI_API_KEY')
-  if (!apiKey) {
-    throw new Error('Gemini API key not configured')
-  }
-
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      contents: [{
-        parts: [{
-          text: `${systemPrompt}\n\nConversation:\n${messages
-            .filter((m: any) => m.sender !== 'system')
-            .map((m: any) => `${m.sender}: ${m.text}`)
-            .join('\n')}`
-        }]
-      }],
-      generationConfig: {
-        maxOutputTokens: 2000,
-        temperature: 0.7,
-      }
-    }),
-  })
-
-  if (!response.ok) {
-    throw new Error(`Gemini API error: ${response.status}`)
-  }
-
-  const data = await response.json()
-  return data.candidates[0].content.parts[0].text
 }
