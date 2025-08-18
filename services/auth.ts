@@ -37,6 +37,10 @@ export class AuthService {
 
       if (error) {
         console.error('❌ Supabase signup error:', error)
+        // Handle specific error cases with user-friendly messages
+        if (error.message === 'User already registered') {
+          throw new Error('This email is already registered. Please try logging in instead.')
+        }
         throw error
       }
       console.log('✅ Signup successful:', data.user?.email)
