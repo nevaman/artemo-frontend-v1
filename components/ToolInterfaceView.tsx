@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import type { DynamicTool, Message, ChatHistoryItem, Project, ChatSession } from '../types';
 import { ApiService } from '../services/api';
 import * as Icons from './Icons';
@@ -117,7 +117,10 @@ export const ToolInterfaceView: React.FC<ToolInterfaceViewProps> = ({ tool, onBa
         currentProjectIdRef.current = currentProjectId;
     }, [currentProjectId]);
     const api = ApiService.getInstance();
-    const sortedQuestions = [...tool.questions].sort((a, b) => a.order - b.order);
+    const sortedQuestions = useMemo(() => 
+        [...tool.questions].sort((a, b) => a.order - b.order), 
+        [tool.questions]
+    );
 
     useEffect(() => {
         setMessages([]);
