@@ -43,7 +43,7 @@ export class AuthService {
         }
         throw error
       }
-      console.log('✅ Signup successful:', data.user?.email)
+      console.log('✅ Signup successful:', data.user?.email, 'Session:', !!data.session)
       return { user: data.user, session: data.session }
     } catch (error) {
       console.error('Error signing up:', error)

@@ -26,7 +26,19 @@ export const LoginForm: React.FC = () => {
           setError('Full name is required');
           return;
         }
-        await signUp(email, password, fullName);
+        const result = await signUp(email, password, fullName);
+        
+        // If signup successful but no session, try to sign in
+        if (result && !result.session) {
+          console.log('🔄 Signup successful, attempting automatic sign in...');
+          try {
+            await signIn(email, password);
+          } catch (signInError) {
+            console.log('⚠️ Auto sign-in failed, user will need to sign in manually');
+            setIsLogin(true);
+            setError('Account created successfully! Please sign in with your credentials.');
+          }
+        }
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred');

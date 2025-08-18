@@ -102,7 +102,7 @@ export const useAuth = () => {
     // Listen for auth changes
     const { data: { subscription } } = authService.onAuthStateChange(
       async (event, session) => {
-        console.log('🔄 Auth state change event:', event, 'Has Session:', !!session)
+        console.log('🔄 Auth state change event:', event, 'Has Session:', !!session, 'User:', session?.user?.email)
         
         if (!mounted) return
         
@@ -112,7 +112,7 @@ export const useAuth = () => {
         if (session?.user) {
           try {
             const userProfile = await authService.getUserProfile(session.user.id)
-            console.log('👤 Auth change profile result:', { 
+            console.log('👤 Auth change profile result for', session.user.email, ':', { 
               hasProfile: !!userProfile, 
               role: userProfile?.role 
             })
@@ -122,7 +122,7 @@ export const useAuth = () => {
               setIsAdmin((userProfile?.role === 'admin' && userProfile?.active === true) || !userProfile)
             }
           } catch (profileError) {
-            console.log('⚠️ Auth change profile error:', profileError)
+            console.log('⚠️ Auth change profile error for', session.user.email, ':', profileError)
             if (mounted) {
               setProfile(null)
               // If profile fetch fails, allow admin access for setup
@@ -130,6 +130,7 @@ export const useAuth = () => {
             }
           }
         } else {
+          console.log('🚪 No session - user signed out or not authenticated')
           if (mounted) {
             setProfile(null)
             setIsAdmin(false)
