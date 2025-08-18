@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import type { DynamicTool, Message, ChatHistoryItem, Project, ChatSession } from '../types';
-import { ApiService } from '../services/api';
+import { SupabaseApiService } from '../services/supabaseApi';
 import * as Icons from './Icons';
 import { ChatMessage } from './ChatMessage';
 
@@ -116,7 +116,7 @@ export const ToolInterfaceView: React.FC<ToolInterfaceViewProps> = ({ tool, onBa
     useEffect(() => {
         currentProjectIdRef.current = currentProjectId;
     }, [currentProjectId]);
-    const api = ApiService.getInstance();
+    const api = SupabaseApiService.getInstance();
     const sortedQuestions = useMemo(() => 
         [...tool.questions].sort((a, b) => a.order - b.order), 
         [tool.questions]

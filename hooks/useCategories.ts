@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ApiService } from '../services/api';
+import { SupabaseApiService } from '../services/supabaseApi';
 import type { AdminCategory, CategoriesApiResponse } from '../types';
 
 export const useCategories = () => {
@@ -7,7 +7,7 @@ export const useCategories = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const api = ApiService.getInstance();
+  const api = SupabaseApiService.getInstance();
 
   const fetchCategories = async () => {
     setLoading(true);
@@ -20,6 +20,7 @@ export const useCategories = () => {
         setError(response.error || 'Failed to fetch categories');
       }
     } catch (err) {
+      console.error('Error fetching categories:', err);
       setError('Network error occurred');
     } finally {
       setLoading(false);

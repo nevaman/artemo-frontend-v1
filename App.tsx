@@ -1,5 +1,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { AuthWrapper } from './components/AuthWrapper';
+import { useAuth } from './hooks/useAuth';
 import { Sidebar } from './components/Sidebar';
 import { MainContent } from './components/MainContent';
 import { AdminLayout } from './components/AdminLayout';
@@ -67,7 +69,8 @@ const RenameModal: React.FC<{
 };
 
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
+    const { isAdmin } = useAuth();
     const [theme, setTheme] = useState<'light' | 'dark'>('dark');
     const [currentView, setCurrentView] = useState<View>('dashboard-view');
     const [isAdminMode, setIsAdminMode] = useState(false);
@@ -295,13 +298,15 @@ const App: React.FC = () => {
                 />
             </div>
             
-            {/* Admin Access Button - Temporary for development */}
-            <button
-                onClick={() => handleNavigate('admin-dashboard')}
-                className="fixed bottom-4 right-4 px-4 py-2 bg-red-600 text-white rounded-md shadow-lg hover:bg-red-700 transition-colors z-50"
-            >
-                Admin Panel
-            </button>
+            {/* Admin Access Button - Only show for admins */}
+            {isAdmin && (
+                <button
+                    onClick={() => handleNavigate('admin-dashboard')}
+                    className="fixed bottom-4 right-4 px-4 py-2 bg-red-600 text-white rounded-md shadow-lg hover:bg-red-700 transition-colors z-50"
+                >
+                    Admin Panel
+                </button>
+            )}
             
             <NewProjectModal
                 isOpen={isModalOpen}
@@ -321,6 +326,14 @@ const App: React.FC = () => {
                 onRename={handleRename}
             />
         </>
+    );
+};
+
+const App: React.FC = () => {
+    return (
+        <AuthWrapper>
+            <AppContent />
+        </AuthWrapper>
     );
 };
 

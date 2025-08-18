@@ -1,6 +1,5 @@
-import { useCategories } from './useCategories';
 import { useState, useEffect } from 'react';
-import { ApiService } from '../services/api';
+import { SupabaseApiService } from '../services/supabaseApi';
 import type { DynamicTool, ToolsApiResponse } from '../types';
 
 export const useTools = () => {
@@ -8,7 +7,7 @@ export const useTools = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const api = ApiService.getInstance();
+  const api = SupabaseApiService.getInstance();
 
   const fetchTools = async () => {
     setLoading(true);
@@ -21,6 +20,7 @@ export const useTools = () => {
         setError(response.error || 'Failed to fetch tools');
       }
     } catch (err) {
+      console.error('Error fetching tools:', err);
       setError('Network error occurred');
     } finally {
       setLoading(false);
