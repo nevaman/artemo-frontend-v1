@@ -8,31 +8,14 @@ export const useAuth = () => {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
-  const [authAttempted, setAuthAttempted] = useState(false)
 
   const authService = AuthService.getInstance()
 
   useEffect(() => {
     let mounted = true
-    let maxTimeoutId: NodeJS.Timeout
-    
-    // Set a maximum timeout for the initial auth check
-    maxTimeoutId = setTimeout(() => {
-      if (mounted) {
-        console.log('⚠️ Auth timeout reached after 3 seconds - forcing loading to false')
-        setLoading(false)
-        setAuthAttempted(true)
-      }
-    }, 3000) // 3 second max timeout
 
     const getInitialSession = async () => {
-      if (authAttempted) {
-        console.log('🔄 Auth already attempted, skipping...')
-        return
-      }
-      
       console.log('🚀 Starting initial auth check...')
-      setAuthAttempted(true)
       
       try {
         const currentSession = await authService.getCurrentSession()
@@ -89,15 +72,12 @@ export const useAuth = () => {
         console.log('✅ Initial auth check complete')
         if (mounted) {
           setLoading(false)
-          clearTimeout(maxTimeoutId)
         }
       }
     }
 
-    // Only run initial session check once
-    if (!authAttempted) {
-      getInitialSession()
-    }
+    // Run initial session check
+    getInitialSession()
 
     // Listen for auth changes
     const { data: { subscription } } = authService.onAuthStateChange(
@@ -138,20 +118,18 @@ export const useAuth = () => {
         }
         
         if (mounted) {
-          setLoading(false)
+          // Don't set loading to false here - let the initial check handle it
         }
       }
     )
 
     return () => {
       mounted = false
-      clearTimeout(maxTimeoutId)
       subscription.unsubscribe()
     }
-  }, [authAttempted])
+  }, []) // Empty dependency array - run only once
 
   const signIn = async (email: string, password: string) => {
-    setLoading(true)
     try {
       console.log('🔐 Attempting sign in for:', email)
       const result = await authService.signIn(email, password)
@@ -160,13 +138,10 @@ export const useAuth = () => {
     } catch (error) {
       console.error('❌ Sign in failed:', error)
       throw error
-    } finally {
-      setLoading(false)
     }
   }
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    setLoading(true)
     try {
       console.log('📝 Attempting sign up for:', email)
       const result = await authService.signUp(email, password, fullName)
@@ -175,13 +150,10 @@ export const useAuth = () => {
     } catch (error) {
       console.error('❌ Sign up failed:', error)
       throw error
-    } finally {
-      setLoading(false)
     }
   }
 
   const signOut = async () => {
-    setLoading(true)
     try {
       console.log('🚪 Signing out...')
       await authService.signOut()
@@ -189,8 +161,6 @@ export const useAuth = () => {
     } catch (error) {
       console.error('❌ Sign out failed:', error)
       throw error
-    } finally {
-      setLoading(false)
     }
   }
 

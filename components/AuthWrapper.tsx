@@ -9,17 +9,6 @@ interface AuthWrapperProps {
 
 export const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
   const [forceShowLogin, setForceShowLogin] = useState(false);
-  const [timeoutReached, setTimeoutReached] = useState(false);
-  
-  // Set a timeout to force show login if loading takes too long
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      console.log('⏰ AuthWrapper timeout reached after 4 seconds - forcing login form');
-      setTimeoutReached(true);
-    }, 4000); // 4 second timeout (longer than useAuth timeout)
-
-    return () => clearTimeout(timeoutId);
-  }, []);
 
   const { user, loading } = useAuth();
 
@@ -27,21 +16,19 @@ export const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
     hasUser: !!user, 
     loading, 
     userEmail: user?.email || 'none',
-    timeoutReached,
     forceShowLogin,
-    shouldShowLogin: timeoutReached || forceShowLogin || (!loading && !user)
+    shouldShowLogin: forceShowLogin || (!loading && !user)
   });
 
-  // Force show login form if timeout reached or explicitly requested
-  if (timeoutReached || forceShowLogin) {
-    console.log('🔐 Showing login form due to timeout or manual trigger');
+  // Force show login form if explicitly requested
+  if (forceShowLogin) {
+    console.log('🔐 Showing login form due to manual trigger');
     return (
       <div>
         <div className="fixed top-4 right-4 z-50">
           <button 
             onClick={() => {
               setForceShowLogin(false);
-              setTimeoutReached(false);
             }}
             className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
           >
