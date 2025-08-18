@@ -8,28 +8,37 @@ export const useAuth = () => {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [authAttempted, setAuthAttempted] = useState(false)
 
   const authService = AuthService.getInstance()
 
   useEffect(() => {
     let mounted = true
-    let timeoutId: NodeJS.Timeout
+    let maxTimeoutId: NodeJS.Timeout
     
     // Set a maximum timeout for the initial auth check
-    const maxTimeout = setTimeout(() => {
+    maxTimeoutId = setTimeout(() => {
       if (mounted) {
-        console.log('⚠️ Auth timeout reached - forcing loading to false')
+        console.log('⚠️ Auth timeout reached after 3 seconds - forcing loading to false')
         setLoading(false)
+        setAuthAttempted(true)
       }
-    }, 2000) // 2 second max timeout
+    }, 3000) // 3 second max timeout
 
     const getInitialSession = async () => {
-      console.log('🚀 Starting auth check...')
+      if (authAttempted) {
+        console.log('🔄 Auth already attempted, skipping...')
+        return
+      }
+      
+      console.log('🚀 Starting initial auth check...')
+      setAuthAttempted(true)
+      
       try {
         const currentSession = await authService.getCurrentSession()
         const currentUser = await authService.getCurrentUser()
         
-        console.log('🔍 Auth result:', { 
+        console.log('🔍 Initial auth result:', { 
           hasSession: !!currentSession, 
           hasUser: !!currentUser,
           userId: currentUser?.id 
@@ -43,7 +52,7 @@ export const useAuth = () => {
         if (currentUser) {
           try {
             const userProfile = await authService.getUserProfile(currentUser.id)
-            console.log('👤 Profile result:', { 
+            console.log('👤 Initial profile result:', { 
               hasProfile: !!userProfile, 
               role: userProfile?.role,
               active: userProfile?.active 
@@ -54,7 +63,7 @@ export const useAuth = () => {
               setIsAdmin(userProfile?.role === 'admin' && userProfile?.active === true)
             }
           } catch (profileError) {
-            console.log('⚠️ Profile error:', profileError)
+            console.log('⚠️ Initial profile error:', profileError)
             if (mounted) {
               setProfile(null)
               setIsAdmin(false)
@@ -67,7 +76,7 @@ export const useAuth = () => {
           }
         }
       } catch (error) {
-        console.error('💥 Auth error:', error)
+        console.error('💥 Initial auth error:', error)
         if (mounted) {
           setSession(null)
           setUser(null)
@@ -75,20 +84,23 @@ export const useAuth = () => {
           setIsAdmin(false)
         }
       } finally {
-        console.log('✅ Auth check complete')
+        console.log('✅ Initial auth check complete')
         if (mounted) {
           setLoading(false)
-          clearTimeout(maxTimeout)
+          clearTimeout(maxTimeoutId)
         }
       }
     }
 
-    getInitialSession()
+    // Only run initial session check once
+    if (!authAttempted) {
+      getInitialSession()
+    }
 
     // Listen for auth changes
     const { data: { subscription } } = authService.onAuthStateChange(
       async (event, session) => {
-        console.log('🔄 Auth state changed:', event, 'Has Session:', !!session)
+        console.log('🔄 Auth state change event:', event, 'Has Session:', !!session)
         
         if (!mounted) return
         
@@ -98,11 +110,16 @@ export const useAuth = () => {
         if (session?.user) {
           try {
             const userProfile = await authService.getUserProfile(session.user.id)
+            console.log('👤 Auth change profile result:', { 
+              hasProfile: !!userProfile, 
+              role: userProfile?.role 
+            })
             if (mounted) {
               setProfile(userProfile)
               setIsAdmin(userProfile?.role === 'admin' && userProfile?.active === true)
             }
           } catch (profileError) {
+            console.log('⚠️ Auth change profile error:', profileError)
             if (mounted) {
               setProfile(null)
               setIsAdmin(false)
@@ -123,17 +140,20 @@ export const useAuth = () => {
 
     return () => {
       mounted = false
-      clearTimeout(maxTimeout)
+      clearTimeout(maxTimeoutId)
       subscription.unsubscribe()
     }
-  }, [])
+  }, [authAttempted])
 
   const signIn = async (email: string, password: string) => {
     setLoading(true)
     try {
+      console.log('🔐 Attempting sign in for:', email)
       const result = await authService.signIn(email, password)
+      console.log('✅ Sign in successful')
       return result
     } catch (error) {
+      console.error('❌ Sign in failed:', error)
       throw error
     } finally {
       setLoading(false)
@@ -143,9 +163,12 @@ export const useAuth = () => {
   const signUp = async (email: string, password: string, fullName: string) => {
     setLoading(true)
     try {
+      console.log('📝 Attempting sign up for:', email)
       const result = await authService.signUp(email, password, fullName)
+      console.log('✅ Sign up successful')
       return result
     } catch (error) {
+      console.error('❌ Sign up failed:', error)
       throw error
     } finally {
       setLoading(false)
@@ -155,8 +178,11 @@ export const useAuth = () => {
   const signOut = async () => {
     setLoading(true)
     try {
+      console.log('🚪 Signing out...')
       await authService.signOut()
+      console.log('✅ Sign out successful')
     } catch (error) {
+      console.error('❌ Sign out failed:', error)
       throw error
     } finally {
       setLoading(false)
