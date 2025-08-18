@@ -2,6 +2,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { MainContent } from './components/MainContent';
+import { AdminLayout } from './components/AdminLayout';
+import { AdminDashboard } from './components/AdminDashboard';
+import { AdminCategories } from './components/AdminCategories';
+import { AdminTools } from './components/AdminTools';
+import { AdminUsers } from './components/AdminUsers';
 import { NewProjectModal } from './components/NewProjectModal';
 import { ToolActivationModal } from './components/ToolActivationModal';
 import { allTools, allCategories } from './constants';
@@ -64,6 +69,7 @@ const RenameModal: React.FC<{
 const App: React.FC = () => {
     const [theme, setTheme] = useState<'light' | 'dark'>('dark');
     const [currentView, setCurrentView] = useState<View>('dashboard-view');
+    const [isAdminMode, setIsAdminMode] = useState(false);
     const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [isModalOpen, setModalOpen] = useState(false);
@@ -101,6 +107,14 @@ const App: React.FC = () => {
 
     const handleNavigate = useCallback((view: View) => {
         setCurrentView(view);
+        
+        // Handle admin mode transitions
+        if (view.startsWith('admin-')) {
+            setIsAdminMode(true);
+        } else if (isAdminMode && !view.startsWith('admin-')) {
+            setIsAdminMode(false);
+        }
+        
         setSidebarOpen(false);
         setSelectedTool(null);
         if (view !== 'all-tools-view') {
@@ -199,6 +213,41 @@ const App: React.FC = () => {
         setItemToRename(null);
     }, [itemToRename]);
 
+    // Render admin interface
+    if (isAdminMode) {
+        const renderAdminView = () => {
+            switch (currentView) {
+                case 'admin-dashboard':
+                    return <AdminDashboard />;
+                case 'admin-categories':
+                    return <AdminCategories />;
+                case 'admin-tools':
+                    return <AdminTools />;
+                case 'admin-users':
+                    return <AdminUsers />;
+                default:
+                    return <AdminDashboard />;
+            }
+        };
+
+        return (
+            <>
+                <AdminLayout currentView={currentView} onNavigate={handleNavigate}>
+                    {renderAdminView()}
+                </AdminLayout>
+                <style>{`
+                    :root {
+                        --primary-accent-color: #008F6B;
+                        --text-on-accent-color: #FFFFFF;
+                    }
+                    .dark {
+                        --primary-accent-color: #00FFB3;
+                        --text-on-accent-color: #000000;
+                    }
+                `}</style>
+            </>
+        );
+    }
 
     return (
         <>
@@ -240,6 +289,15 @@ const App: React.FC = () => {
                     onDeleteProject={handleDeleteProject}
                 />
             </div>
+            
+            {/* Admin Access Button - Temporary for development */}
+            <button
+                onClick={() => handleNavigate('admin-dashboard')}
+                className="fixed bottom-4 right-4 px-4 py-2 bg-red-600 text-white rounded-md shadow-lg hover:bg-red-700 transition-colors z-50"
+            >
+                Admin Panel
+            </button>
+            
             <NewProjectModal
                 isOpen={isModalOpen}
                 onClose={() => setModalOpen(false)}

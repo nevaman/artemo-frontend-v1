@@ -35,12 +35,60 @@ export type View =
   | 'long-form-view' 
   | 'podcast-tools-view' 
   | 'sales-funnel-copy-view' 
-  | 'other-flows-view';
+  | 'other-flows-view'
+  | 'admin-dashboard'
+  | 'admin-categories'
+  | 'admin-tools'
+  | 'admin-users';
 
 export interface ToolQuestion {
     label: string;
     type: 'input' | 'textarea';
     placeholder: string;
+}
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string;
+  role: 'user' | 'admin';
+  active: boolean;
+  createdAt: string;
+}
+
+export interface AdminCategory {
+  id: string;
+  name: string;
+  displayOrder: number;
+  active: boolean;
+}
+
+export interface AdminTool {
+  id: string;
+  title: string;
+  description: string;
+  categoryId: string;
+  active: boolean;
+  featured: boolean;
+  primaryModel: string;
+  fallbackModels: string[];
+  promptInstructions: string;
+  questions: AdminToolQuestion[];
+  knowledgeBaseFile?: {
+    name: string;
+    url: string;
+    size: number;
+  };
+}
+
+export interface AdminToolQuestion {
+  id: string;
+  label: string;
+  type: 'input' | 'textarea' | 'select';
+  placeholder?: string;
+  required: boolean;
+  order: number;
+  options?: string[]; // for select type
 }
 
 export interface Message {
