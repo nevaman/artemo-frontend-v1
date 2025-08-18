@@ -14,7 +14,14 @@ export const useAuth = () => {
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
-      setLoading(true);
+      setLoading(true)
+      
+      // Clear any existing session data
+      setSession(null)
+      setUser(null)
+      setProfile(null)
+      setIsAdmin(false)
+      
       try {
         const currentSession = await authService.getCurrentSession()
         const currentUser = await authService.getCurrentUser()
@@ -34,7 +41,7 @@ export const useAuth = () => {
           }
         }
       } catch (error) {
-        console.log('No active session found')
+        console.log('No active session found, showing login')
         setSession(null)
         setUser(null)
         setProfile(null)

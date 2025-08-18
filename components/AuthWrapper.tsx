@@ -10,6 +10,9 @@ interface AuthWrapperProps {
 export const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
   const { user, loading } = useAuth();
 
+  // Force show login form for debugging
+  console.log('AuthWrapper - User:', user, 'Loading:', loading);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-light-bg-page dark:bg-dark-bg-page flex items-center justify-center">
@@ -23,8 +26,10 @@ export const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
   }
 
   if (!user) {
+    console.log('No user found, showing login form');
     return <LoginForm />;
   }
 
+  console.log('User authenticated, showing app');
   return <>{children}</>;
 };
