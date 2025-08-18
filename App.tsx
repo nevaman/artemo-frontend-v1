@@ -10,6 +10,7 @@ import { AdminUsers } from './components/AdminUsers';
 import { NewProjectModal } from './components/NewProjectModal';
 import { ToolActivationModal } from './components/ToolActivationModal';
 import { useTools, useCategories } from './hooks/useTools';
+import { useCategories } from './hooks/useCategories';
 import type { DynamicTool, View, Project, ToolCategory, ChatHistoryItem } from './types';
 import { XIcon } from './components/Icons';
 
