@@ -16,12 +16,12 @@ export const useAuth = () => {
     
     // Get initial session
     const getInitialSession = async () => {
-      console.log('🔄 Starting initial session check...')
+      console.log('🚀 FRESH START - Checking authentication with database ready...')
       try {
         const currentSession = await authService.getCurrentSession()
         const currentUser = await authService.getCurrentUser()
         
-        console.log('📊 Initial session check:', { 
+        console.log('🔍 Session check result:', { 
           hasSession: !!currentSession, 
           hasUser: !!currentUser,
           userId: currentUser?.id 
@@ -35,7 +35,7 @@ export const useAuth = () => {
         if (currentUser) {
           try {
             const userProfile = await authService.getUserProfile(currentUser.id)
-            console.log('👤 User profile loaded:', { 
+            console.log('✅ Database profile found:', { 
               hasProfile: !!userProfile, 
               role: userProfile?.role,
               active: userProfile?.active 
@@ -46,21 +46,22 @@ export const useAuth = () => {
               setIsAdmin(userProfile?.role === 'admin' && userProfile?.active === true)
             }
           } catch (profileError) {
-            console.log('⚠️ Profile not found, user may need to complete setup')
+            console.log('⚠️ Profile not found - this should not happen with database setup')
+            console.error('Profile error:', profileError)
             if (mounted) {
               setProfile(null)
               setIsAdmin(false)
             }
           }
         } else {
-          console.log('❌ No current user found')
+          console.log('👤 No current user - will show login form')
           if (mounted) {
             setProfile(null)
             setIsAdmin(false)
           }
         }
       } catch (error) {
-        console.error('💥 Error getting initial session:', error)
+        console.error('💥 Authentication error:', error)
         if (mounted) {
           setSession(null)
           setUser(null)
@@ -68,7 +69,7 @@ export const useAuth = () => {
           setIsAdmin(false)
         }
       } finally {
-        console.log('✅ Initial session check complete - Setting loading to false')
+        console.log('🎯 Authentication check complete - Setting loading to false')
         if (mounted) {
           setLoading(false)
         }
