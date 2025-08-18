@@ -13,15 +13,23 @@ export const useAuth = () => {
 
   useEffect(() => {
     let mounted = true
+    let timeoutId: NodeJS.Timeout
     
-    // Get initial session
+    // Set a maximum timeout for the initial auth check
+    const maxTimeout = setTimeout(() => {
+      if (mounted) {
+        console.log('⚠️ Auth timeout reached - forcing loading to false')
+        setLoading(false)
+      }
+    }, 2000) // 2 second max timeout
+
     const getInitialSession = async () => {
-      console.log('🚀 FRESH START - Checking authentication with database ready...')
+      console.log('🚀 Starting auth check...')
       try {
         const currentSession = await authService.getCurrentSession()
         const currentUser = await authService.getCurrentUser()
         
-        console.log('🔍 Session check result:', { 
+        console.log('🔍 Auth result:', { 
           hasSession: !!currentSession, 
           hasUser: !!currentUser,
           userId: currentUser?.id 
@@ -35,7 +43,7 @@ export const useAuth = () => {
         if (currentUser) {
           try {
             const userProfile = await authService.getUserProfile(currentUser.id)
-            console.log('✅ Database profile found:', { 
+            console.log('👤 Profile result:', { 
               hasProfile: !!userProfile, 
               role: userProfile?.role,
               active: userProfile?.active 
@@ -46,22 +54,20 @@ export const useAuth = () => {
               setIsAdmin(userProfile?.role === 'admin' && userProfile?.active === true)
             }
           } catch (profileError) {
-            console.log('⚠️ Profile not found - this should not happen with database setup')
-            console.error('Profile error:', profileError)
+            console.log('⚠️ Profile error:', profileError)
             if (mounted) {
               setProfile(null)
               setIsAdmin(false)
             }
           }
         } else {
-          console.log('👤 No current user - will show login form')
           if (mounted) {
             setProfile(null)
             setIsAdmin(false)
           }
         }
       } catch (error) {
-        console.error('💥 Authentication error:', error)
+        console.error('💥 Auth error:', error)
         if (mounted) {
           setSession(null)
           setUser(null)
@@ -69,9 +75,10 @@ export const useAuth = () => {
           setIsAdmin(false)
         }
       } finally {
-        console.log('🎯 Authentication check complete - Setting loading to false')
+        console.log('✅ Auth check complete')
         if (mounted) {
           setLoading(false)
+          clearTimeout(maxTimeout)
         }
       }
     }
@@ -91,16 +98,11 @@ export const useAuth = () => {
         if (session?.user) {
           try {
             const userProfile = await authService.getUserProfile(session.user.id)
-            console.log('👤 Profile loaded after auth change:', { 
-              hasProfile: !!userProfile, 
-              role: userProfile?.role 
-            })
             if (mounted) {
               setProfile(userProfile)
               setIsAdmin(userProfile?.role === 'admin' && userProfile?.active === true)
             }
           } catch (profileError) {
-            console.log('⚠️ Profile not found for auth change')
             if (mounted) {
               setProfile(null)
               setIsAdmin(false)
@@ -113,7 +115,6 @@ export const useAuth = () => {
           }
         }
         
-        console.log('✅ Auth state change complete - Setting loading to false')
         if (mounted) {
           setLoading(false)
         }
@@ -122,6 +123,7 @@ export const useAuth = () => {
 
     return () => {
       mounted = false
+      clearTimeout(maxTimeout)
       subscription.unsubscribe()
     }
   }, [])
