@@ -23,9 +23,7 @@ try {
   useAuth = require('./hooks/useAuth').useAuth;
 } catch (error) {
   console.error('❌ Error importing components:', error);
-  // Return test app if imports fail
-  const App: React.FC = () => <TestApp />;
-  export default App;
+  // If imports fail, we'll handle it in the main App component below
 }
 
 // If imports successful, continue with full app
