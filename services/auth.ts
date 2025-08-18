@@ -75,10 +75,17 @@ export class AuthService {
   async getCurrentUser(): Promise<User | null> {
     try {
       const { data: { user }, error } = await supabase.auth.getUser()
-      if (error) throw error
+      if (error) {
+        // Don't throw for missing session - this is normal when not logged in
+        if (error.message?.includes('session') || error.message?.includes('JWT')) {
+          console.log('ℹ️ No active session found (user not logged in)')
+          return null
+        }
+        throw error
+      }
       return user
     } catch (error) {
-      console.error('Error getting current user:', error)
+      console.log('ℹ️ No current user session available')
       return null
     }
   }
@@ -86,10 +93,17 @@ export class AuthService {
   async getCurrentSession(): Promise<Session | null> {
     try {
       const { data: { session }, error } = await supabase.auth.getSession()
-      if (error) throw error
+      if (error) {
+        // Don't throw for missing session - this is normal when not logged in
+        if (error.message?.includes('session') || error.message?.includes('JWT')) {
+          console.log('ℹ️ No active session found')
+          return null
+        }
+        throw error
+      }
       return session
     } catch (error) {
-      console.error('Error getting current session:', error)
+      console.log('ℹ️ No current session available')
       return null
     }
   }
