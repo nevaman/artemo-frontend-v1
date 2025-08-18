@@ -99,6 +99,23 @@ export const ToolInterfaceView: React.FC<ToolInterfaceViewProps> = ({ tool, onBa
     const [currentProjectId, setCurrentProjectId] = useState<string | null>(projects[0]?.id || null);
     const [isGeneratingFinalResponse, setIsGeneratingFinalResponse] = useState(false);
     
+    // Use refs to store latest values for cleanup function
+    const messagesRef = useRef(messages);
+    const toolRef = useRef(tool);
+    const currentProjectIdRef = useRef(currentProjectId);
+    
+    // Update refs when state changes
+    useEffect(() => {
+        messagesRef.current = messages;
+    }, [messages]);
+    
+    useEffect(() => {
+        toolRef.current = tool;
+    }, [tool]);
+    
+    useEffect(() => {
+        currentProjectIdRef.current = currentProjectId;
+    }, [currentProjectId]);
     const api = ApiService.getInstance();
     const sortedQuestions = [...tool.questions].sort((a, b) => a.order - b.order);
 
@@ -131,18 +148,19 @@ export const ToolInterfaceView: React.FC<ToolInterfaceViewProps> = ({ tool, onBa
     }, [tool.id, tool.title, sortedQuestions]);
 
     useEffect(() => {
+        // Cleanup function that uses refs to avoid dependency issues
         return () => {
-            if (messages.length > 1) {
+            if (messagesRef.current.length > 1) {
                 onSaveChat({
-                    toolId: tool.id,
-                    toolTitle: tool.title,
-                    messages,
+                    toolId: toolRef.current.id,
+                    toolTitle: toolRef.current.title,
+                    messages: messagesRef.current,
                     timestamp: Date.now(),
-                    projectId: currentProjectId,
+                    projectId: currentProjectIdRef.current,
                 });
             }
         };
-    }, [messages, tool, onSaveChat, currentProjectId]);
+    }, [onSaveChat]);
 
     const handleSendMessage = async (text: string) => {
         if (chatSession.isComplete) return;
@@ -220,10 +238,10 @@ export const ToolInterfaceView: React.FC<ToolInterfaceViewProps> = ({ tool, onBa
                 sender: 'ai',
                 text: 'I apologize, but I encountered an error. Please try again.'
             };
-                setMessages(prev => [...prev, aiQuestion]);
+            setMessages(prev => [...prev, errorMessage]);
             setIsThinking(false);
             setIsGeneratingFinalResponse(false);
-            }
+        }
     };
 
     const readFileContent = (file: File): Promise<string> => {
