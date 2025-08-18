@@ -23,6 +23,7 @@ export class AuthService {
   // Authentication methods
   async signUp(email: string, password: string, fullName: string) {
     try {
+      console.log('🔄 Attempting to sign up user:', email)
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -34,7 +35,11 @@ export class AuthService {
         }
       })
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Supabase signup error:', error)
+        throw error
+      }
+      console.log('✅ Signup successful:', data.user?.email)
       return { user: data.user, session: data.session }
     } catch (error) {
       console.error('Error signing up:', error)
