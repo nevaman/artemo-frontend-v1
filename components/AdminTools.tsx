@@ -29,6 +29,7 @@ export const AdminTools: React.FC = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [editingTool, setEditingTool] = useState<AdminTool | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
+  const [isMaximized, setIsMaximized] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -234,14 +235,48 @@ export const AdminTools: React.FC = () => {
       {/* Multi-step Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/40 dark:bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-light-bg-component dark:bg-dark-bg-component rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className={`bg-light-bg-component dark:bg-dark-bg-component rounded-lg shadow-lg transition-all duration-300 ${
+            isMaximized 
+              ? 'w-[95vw] h-[95vh] max-w-none' 
+              : 'w-full max-w-2xl max-h-[90vh]'
+          } overflow-y-auto`}>
             <div className="p-6 border-b border-light-border dark:border-dark-border">
-              <h3 className="font-serif text-xl font-bold text-light-text-primary dark:text-dark-text-primary">
-                {editingTool ? 'Edit Tool' : 'Create Tool'} - Step {currentStep} of 3
-              </h3>
+              <div className="flex justify-between items-center">
+                <h3 className="font-serif text-xl font-bold text-light-text-primary dark:text-dark-text-primary">
+                  {editingTool ? 'Edit Tool' : 'Create Tool'} - Step {currentStep} of 3
+                </h3>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setIsMaximized(!isMaximized)}
+                    className="p-2 text-light-text-tertiary dark:text-dark-text-tertiary hover:text-light-text-primary dark:hover:text-dark-text-primary hover:bg-light-bg-sidebar dark:hover:bg-dark-bg-page rounded-md transition-colors"
+                    title={isMaximized ? 'Minimize' : 'Maximize'}
+                  >
+                    {isMaximized ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9V4.5M9 9H4.5M9 9L3.5 3.5M15 15v4.5M15 15h4.5M15 15l5.5 5.5" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                      </svg>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setModalOpen(false);
+                      setIsMaximized(false);
+                    }}
+                    className="p-2 text-light-text-tertiary dark:text-dark-text-tertiary hover:text-light-text-primary dark:hover:text-dark-text-primary hover:bg-light-bg-sidebar dark:hover:bg-dark-bg-page rounded-md transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
             </div>
             
-            <div className="p-6">
+            <div className={`p-6 ${isMaximized ? 'h-[calc(95vh-140px)] overflow-y-auto' : ''}`}>
               {currentStep === 1 && (
                 <div className="space-y-4">
                   <div>
@@ -350,9 +385,9 @@ export const AdminTools: React.FC = () => {
                     <textarea
                       value={formData.promptInstructions}
                       onChange={(e) => setFormData(prev => ({ ...prev, promptInstructions: e.target.value }))}
-                      rows={6}
+                      rows={isMaximized ? 20 : 6}
                       placeholder="You are an expert copywriter..."
-                      className="w-full p-3 border border-light-border dark:border-dark-border rounded-md bg-light-bg-component dark:bg-dark-bg-component text-light-text-primary dark:text-dark-text-primary focus:ring-2 focus:ring-primary-accent focus:border-primary-accent outline-none"
+                      className="w-full p-3 border border-light-border dark:border-dark-border rounded-md bg-light-bg-component dark:bg-dark-bg-component text-light-text-primary dark:text-dark-text-primary focus:ring-2 focus:ring-primary-accent focus:border-primary-accent outline-none resize-y"
                     />
                   </div>
                 </div>
@@ -370,7 +405,7 @@ export const AdminTools: React.FC = () => {
                       Add Question
                     </button>
                   </div>
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                  <div className={`space-y-3 ${isMaximized ? 'max-h-[60vh]' : 'max-h-96'} overflow-y-auto`}>
                     {formData.questions.map((question, index) => (
                       <div key={question.id} className="border border-light-border dark:border-dark-border rounded-md p-4">
                         <div className="flex justify-between items-start mb-3">
