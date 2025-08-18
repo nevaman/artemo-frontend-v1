@@ -12,13 +12,22 @@ export const useAuth = () => {
   const authService = AuthService.getInstance()
 
   useEffect(() => {
+    let mounted = true
+    
     // Get initial session
     const getInitialSession = async () => {
+      console.log('🔄 Starting initial session check...')
       try {
         const currentSession = await authService.getCurrentSession()
         const currentUser = await authService.getCurrentUser()
         
-        console.log('Initial session check:', { currentSession: !!currentSession, currentUser: !!currentUser })
+        console.log('📊 Initial session check:', { 
+          hasSession: !!currentSession, 
+          hasUser: !!currentUser,
+          userId: currentUser?.id 
+        })
+        
+        if (!mounted) return
         
         setSession(currentSession)
         setUser(currentUser)
@@ -26,28 +35,43 @@ export const useAuth = () => {
         if (currentUser) {
           try {
             const userProfile = await authService.getUserProfile(currentUser.id)
-            console.log('User profile:', userProfile)
-            setProfile(userProfile)
-            setIsAdmin(userProfile?.role === 'admin' && userProfile?.active === true)
+            console.log('👤 User profile loaded:', { 
+              hasProfile: !!userProfile, 
+              role: userProfile?.role,
+              active: userProfile?.active 
+            })
+            
+            if (mounted) {
+              setProfile(userProfile)
+              setIsAdmin(userProfile?.role === 'admin' && userProfile?.active === true)
+            }
           } catch (profileError) {
-            console.log('Profile not found, user may need to complete setup')
+            console.log('⚠️ Profile not found, user may need to complete setup')
+            if (mounted) {
+              setProfile(null)
+              setIsAdmin(false)
+            }
+          }
+        } else {
+          console.log('❌ No current user found')
+          if (mounted) {
             setProfile(null)
             setIsAdmin(false)
           }
-        } else {
-          console.log('No current user found')
+        }
+      } catch (error) {
+        console.error('💥 Error getting initial session:', error)
+        if (mounted) {
+          setSession(null)
+          setUser(null)
           setProfile(null)
           setIsAdmin(false)
         }
-      } catch (error) {
-        console.log('Error getting initial session:', error)
-        setSession(null)
-        setUser(null)
-        setProfile(null)
-        setIsAdmin(false)
       } finally {
-        console.log('Setting loading to false')
-        setLoading(false)
+        console.log('✅ Initial session check complete - Setting loading to false')
+        if (mounted) {
+          setLoading(false)
+        }
       }
     }
 
@@ -56,7 +80,9 @@ export const useAuth = () => {
     // Listen for auth changes
     const { data: { subscription } } = authService.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, 'Session:', !!session)
+        console.log('🔄 Auth state changed:', event, 'Has Session:', !!session)
+        
+        if (!mounted) return
         
         setSession(session)
         setUser(session?.user ?? null)
@@ -64,27 +90,40 @@ export const useAuth = () => {
         if (session?.user) {
           try {
             const userProfile = await authService.getUserProfile(session.user.id)
-            setProfile(userProfile)
-            setIsAdmin(userProfile?.role === 'admin' && userProfile?.active === true)
+            console.log('👤 Profile loaded after auth change:', { 
+              hasProfile: !!userProfile, 
+              role: userProfile?.role 
+            })
+            if (mounted) {
+              setProfile(userProfile)
+              setIsAdmin(userProfile?.role === 'admin' && userProfile?.active === true)
+            }
           } catch (profileError) {
-            console.log('Profile not found for new user')
+            console.log('⚠️ Profile not found for auth change')
+            if (mounted) {
+              setProfile(null)
+              setIsAdmin(false)
+            }
+          }
+        } else {
+          if (mounted) {
             setProfile(null)
             setIsAdmin(false)
           }
-        } else {
-          setProfile(null)
-          setIsAdmin(false)
         }
         
-        // Always set loading to false after auth state change
-        setLoading(false)
+        console.log('✅ Auth state change complete - Setting loading to false')
+        if (mounted) {
+          setLoading(false)
+        }
       }
     )
 
     return () => {
+      mounted = false
       subscription.unsubscribe()
     }
-  }, [authService])
+  }, [])
 
   const signIn = async (email: string, password: string) => {
     setLoading(true)
