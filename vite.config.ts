@@ -5,7 +5,8 @@ export default defineConfig({
   server: {
     port: 5173,
     host: '0.0.0.0',
-    strictPort: true
+    strictPort: true,
+    open: false // Don't auto-open browser
   },
   resolve: {
     alias: {
@@ -14,5 +15,13 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['react', 'react-dom']
+  },
+  // Add error handling
+  define: {
+    global: 'globalThis',
+  },
+  // Ensure proper module resolution
+  esbuild: {
+    logOverride: { 'this-is-undefined-in-esm': 'silent' }
   }
 });

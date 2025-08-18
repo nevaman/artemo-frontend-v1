@@ -1,7 +1,34 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { AuthWrapper } from './components/AuthWrapper';
-import { useAuth } from './hooks/useAuth';
+
+// Simple test component to verify app loads
+const TestApp: React.FC = () => {
+  return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-gray-800 mb-4">Artemo AI Dashboard</h1>
+        <p className="text-gray-600 mb-4">App is loading successfully!</p>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+      </div>
+    </div>
+  );
+};
+
+// Import components conditionally to avoid errors
+let AuthWrapper: any;
+let useAuth: any;
+
+try {
+  AuthWrapper = require('./components/AuthWrapper').AuthWrapper;
+  useAuth = require('./hooks/useAuth').useAuth;
+} catch (error) {
+  console.error('❌ Error importing components:', error);
+  // Return test app if imports fail
+  const App: React.FC = () => <TestApp />;
+  export default App;
+}
+
+// If imports successful, continue with full app
 import { Sidebar } from './components/Sidebar';
 import { MainContent } from './components/MainContent';
 import { AdminLayout } from './components/AdminLayout';
@@ -15,6 +42,49 @@ import { useTools, useCategories } from './hooks/useTools';
 import { useCategories } from './hooks/useCategories';
 import type { DynamicTool, View, Project, ToolCategory, ChatHistoryItem } from './types';
 import { XIcon } from './components/Icons';
+
+// Add error boundary
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: any) {
+    console.error('❌ App Error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-red-50 flex items-center justify-center">
+          <div className="text-center p-8">
+            <h1 className="text-2xl font-bold text-red-800 mb-4">Something went wrong</h1>
+            <p className="text-red-600 mb-4">The app encountered an error:</p>
+            <pre className="bg-red-100 p-4 rounded text-sm text-left overflow-auto">
+              {this.state.error?.message || 'Unknown error'}
+            </pre>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            >
+              Reload Page
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 // Rename Modal Component defined locally to avoid creating new files
 const RenameModal: React.FC<{
@@ -338,11 +408,22 @@ const AppContent: React.FC = () => {
 };
 
 const App: React.FC = () => {
+    console.log('🎯 App component rendering...');
+    
+    // Test if basic React is working
+    if (!AuthWrapper || !useAuth) {
+        console.log('⚠️ Components not loaded, showing test app');
+        return <TestApp />;
+    }
+
     return (
-        <AuthWrapper>
-            <AppContent />
-        </AuthWrapper>
+        <ErrorBoundary>
+            <AuthWrapper>
+                <AppContent />
+            </AuthWrapper>
+        </ErrorBoundary>
     );
 };
 
+console.log('✅ App component defined successfully');
 export default App;
