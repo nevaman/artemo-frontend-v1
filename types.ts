@@ -115,3 +115,36 @@ export interface ToolScript {
   questions: string[];
   finalResponseGenerator: (toolTitle: string, answers: string[]) => string;
 }
+
+// Enhanced types for dynamic tool system
+export interface DynamicTool extends Tool {
+  active: boolean;
+  featured: boolean;
+  primaryModel: string;
+  fallbackModels: string[];
+  promptInstructions: string;
+  questions: AdminToolQuestion[];
+  knowledgeBaseFile?: {
+    name: string;
+    url: string;
+    size: number;
+  };
+}
+
+export interface ChatSession {
+  id: string;
+  toolId: string;
+  currentQuestionIndex: number;
+  answers: string[];
+  isComplete: boolean;
+  knowledgeBaseContext?: string;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
+export interface ToolsApiResponse extends ApiResponse<DynamicTool[]> {}
+export interface CategoriesApiResponse extends ApiResponse<AdminCategory[]> {}

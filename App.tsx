@@ -9,8 +9,8 @@ import { AdminTools } from './components/AdminTools';
 import { AdminUsers } from './components/AdminUsers';
 import { NewProjectModal } from './components/NewProjectModal';
 import { ToolActivationModal } from './components/ToolActivationModal';
-import { allTools, allCategories } from './constants';
-import type { Tool, View, Project, ToolCategory, ChatHistoryItem } from './types';
+import { useTools, useCategories } from './hooks/useTools';
+import type { DynamicTool, View, Project, ToolCategory, ChatHistoryItem } from './types';
 import { XIcon } from './components/Icons';
 
 // Rename Modal Component defined locally to avoid creating new files
@@ -70,7 +70,7 @@ const App: React.FC = () => {
     const [theme, setTheme] = useState<'light' | 'dark'>('dark');
     const [currentView, setCurrentView] = useState<View>('dashboard-view');
     const [isAdminMode, setIsAdminMode] = useState(false);
-    const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
+    const [selectedTool, setSelectedTool] = useState<DynamicTool | null>(null);
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [isModalOpen, setModalOpen] = useState(false);
     const [projects, setProjects] = useState<Project[]>([
@@ -83,7 +83,7 @@ const App: React.FC = () => {
     const [recentTools, setRecentTools] = useState<string[]>(['youtube', 'freestyle']);
     const [chatHistory, setChatHistory] = useState<ChatHistoryItem[]>([]);
     
-    const [toolForActivation, setToolForActivation] = useState<Tool | null>(null);
+    const [toolForActivation, setToolForActivation] = useState<DynamicTool | null>(null);
     const [dontShowAgainToolIds, setDontShowAgainToolIds] = useState<string[]>(() => {
         try {
             const saved = localStorage.getItem('dontShowAgainToolIds');
@@ -94,6 +94,10 @@ const App: React.FC = () => {
     });
 
     const [itemToRename, setItemToRename] = useState<{ id: string; name: string; type: 'project' | 'chat' } | null>(null);
+
+    // Use dynamic tools and categories
+    const { tools } = useTools();
+    const { categories } = useCategories();
 
     useEffect(() => {
         const root = window.document.documentElement;
@@ -129,7 +133,7 @@ const App: React.FC = () => {
         });
     };
     
-    const handleStartToolSession = useCallback((tool: Tool) => {
+    const handleStartToolSession = useCallback((tool: DynamicTool) => {
         addRecentTool(tool.id);
         setSelectedTool(tool);
         setCurrentView('tool-interface-view');
@@ -137,7 +141,7 @@ const App: React.FC = () => {
         setSidebarOpen(false);
     }, []);
 
-    const handleInitiateToolActivation = useCallback((tool: Tool) => {
+    const handleInitiateToolActivation = useCallback((tool: DynamicTool) => {
         if (dontShowAgainToolIds.includes(tool.id)) {
             handleStartToolSession(tool);
         } else {
@@ -302,7 +306,7 @@ const App: React.FC = () => {
                 isOpen={isModalOpen}
                 onClose={() => setModalOpen(false)}
                 onCreate={handleCreateProject}
-                categories={allCategories}
+                categories={categories.map(cat => cat.name as ToolCategory)}
             />
             <ToolActivationModal
                 tool={toolForActivation}

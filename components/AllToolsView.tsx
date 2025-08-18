@@ -1,21 +1,19 @@
 
 import React, { useState, useMemo } from 'react';
-import type { Tool, ToolCategory } from '../types';
+import type { DynamicTool, ToolCategory } from '../types';
+import { useTools } from '../hooks/useTools';
 import { ToolCard } from './ToolCard';
 import { ChevronDownIcon, UsersIcon, EditIcon, MessageSquareIcon, MailIcon, FileTextIcon, MicIcon, ActivityIcon, BellIcon, SearchIcon } from './Icons';
-import { allCategories } from '../constants';
 
 interface AllToolsViewProps {
-    tools: Tool[];
-    onInitiateToolActivation: (tool: Tool) => void;
-    showNoResults?: boolean;
+    onInitiateToolActivation: (tool: DynamicTool) => void;
     favoriteTools: string[];
     onToggleFavorite: (toolId: string) => void;
     searchTerm?: string;
     onSearchChange?: (value: string) => void;
 }
 
-const categoryIcons: { [key in ToolCategory]: React.FC<{ className?: string }> } = {
+const categoryIcons: Record<string, React.FC<{ className?: string }>> = {
     AD_COPY: MessageSquareIcon,
     CLIENT_MANAGEMENT: UsersIcon,
     COPY_IMPROVEMENT: EditIcon,
@@ -26,7 +24,7 @@ const categoryIcons: { [key in ToolCategory]: React.FC<{ className?: string }> }
     SALES_FUNNEL_COPY: ActivityIcon,
 };
 
-const categoryLabels: { [key in ToolCategory]: string } = {
+const categoryLabels: Record<string, string> = {
     AD_COPY: 'Ad Copy',
     CLIENT_MANAGEMENT: 'Client Management',
     COPY_IMPROVEMENT: 'Copy Improvement',
@@ -38,9 +36,9 @@ const categoryLabels: { [key in ToolCategory]: string } = {
 };
 
 const CollapsibleCategory: React.FC<{
-    category: ToolCategory;
-    tools: Tool[];
-    onInitiateToolActivation: (tool: Tool) => void;
+    category: string;
+    tools: DynamicTool[];
+    onInitiateToolActivation: (tool: DynamicTool) => void;
     favoriteTools: string[];
     onToggleFavorite: (toolId: string) => void;
 }> = ({ category, tools, onInitiateToolActivation, favoriteTools, onToggleFavorite }) => {
@@ -78,8 +76,9 @@ const CollapsibleCategory: React.FC<{
 };
 
 
-export const AllToolsView: React.FC<AllToolsViewProps> = ({ tools, onInitiateToolActivation, showNoResults, favoriteTools, onToggleFavorite, searchTerm = '', onSearchChange }) => {
+export const AllToolsView: React.FC<AllToolsViewProps> = ({ onInitiateToolActivation, favoriteTools, onToggleFavorite, searchTerm = '', onSearchChange }) => {
     const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
+    const { tools, loading, error } = useTools();
 
     const handleSearchChange = (value: string) => {
         setLocalSearchTerm(value);
@@ -88,18 +87,59 @@ export const AllToolsView: React.FC<AllToolsViewProps> = ({ tools, onInitiateToo
         }
     };
 
+    const filteredTools = useMemo(() => {
+        if (!localSearchTerm.trim()) return tools;
+        const searchLower = localSearchTerm.toLowerCase();
+        return tools.filter(tool => 
+            tool.title.toLowerCase().includes(searchLower) ||
+            tool.description.toLowerCase().includes(searchLower) ||
+            tool.category.toLowerCase().includes(searchLower)
+        );
+    }, [tools, localSearchTerm]);
+
     const groupedTools = useMemo(() => {
-        const groups: { [key in ToolCategory]?: Tool[] } = {};
-        for (const tool of tools) {
+        const groups: Record<string, DynamicTool[]> = {};
+        for (const tool of filteredTools) {
             if (!groups[tool.category]) {
                 groups[tool.category] = [];
             }
             groups[tool.category]!.push(tool);
         }
         return groups;
-    }, [tools]);
+    }, [filteredTools]);
     
-    const orderedCategories = allCategories.filter(cat => groupedTools[cat] && groupedTools[cat]!.length > 0);
+    const orderedCategories = Object.keys(groupedTools).filter(cat => groupedTools[cat] && groupedTools[cat]!.length > 0);
+
+    if (loading) {
+        return (
+            <div className="p-4 lg:p-6 max-w-5xl mx-auto w-full">
+                <div className="flex items-center justify-center py-20">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-accent mx-auto mb-4"></div>
+                        <p className="text-light-text-secondary dark:text-dark-text-secondary">Loading tools...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="p-4 lg:p-6 max-w-5xl mx-auto w-full">
+                <div className="flex items-center justify-center py-20">
+                    <div className="text-center">
+                        <p className="text-red-600 dark:text-red-400 mb-4">Error loading tools: {error}</p>
+                        <button 
+                            onClick={() => window.location.reload()} 
+                            className="px-4 py-2 bg-primary-accent text-text-on-accent rounded-md hover:opacity-85"
+                        >
+                            Retry
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-4 lg:p-6 max-w-5xl mx-auto w-full">
@@ -116,10 +156,10 @@ export const AllToolsView: React.FC<AllToolsViewProps> = ({ tools, onInitiateToo
                     />
                 </div>
             </div>
-            {showNoResults ? (
+            {localSearchTerm.trim() && filteredTools.length === 0 ? (
                  <div className="text-center py-12 text-light-text-tertiary dark:text-dark-text-tertiary">
                     <h3 className="text-lg font-semibold">No results found</h3>
-                    <p>Try a different search term.</p>
+                    <p>Try a different search term or check back later for new tools.</p>
                 </div>
             ) : (
                 <div>

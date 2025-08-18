@@ -1,12 +1,12 @@
 
 import React from 'react';
-import type { Tool } from '../types';
+import type { DynamicTool } from '../types';
 import { ToolCard } from './ToolCard';
 
 interface ToolGridViewProps {
     title: string;
-    tools: Tool[];
-    onInitiateToolActivation: (tool: Tool) => void;
+    tools: DynamicTool[];
+    onInitiateToolActivation: (tool: DynamicTool) => void;
     showNoResults?: boolean;
     favoriteTools: string[];
     onToggleFavorite: (toolId: string) => void;

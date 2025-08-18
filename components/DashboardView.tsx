@@ -1,18 +1,19 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import type { Tool } from '../types';
-import { allTools, featuredToolIds } from '../constants';
+import type { DynamicTool } from '../types';
+import { useTools } from '../hooks/useTools';
 import { ToolCard } from './ToolCard';
 import { SendIcon, XIcon } from './Icons';
 
 interface DashboardViewProps {
-    onInitiateToolActivation: (tool: Tool) => void;
+    onInitiateToolActivation: (tool: DynamicTool) => void;
     favoriteTools: string[];
     onToggleFavorite: (toolId: string) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({ onInitiateToolActivation, favoriteTools, onToggleFavorite }) => {
     const [prompt, setPrompt] = useState('persuasive email for a new product launch');
+    const { featuredTools, loading, error } = useTools();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
@@ -22,7 +23,32 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onInitiateToolActi
         }
     }, [prompt]);
 
-    const featuredTools = featuredToolIds.map(id => allTools.find(t => t.id === id)).filter(Boolean) as Tool[];
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-accent mx-auto mb-4"></div>
+                    <p className="text-light-text-secondary dark:text-dark-text-secondary">Loading tools...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                    <p className="text-red-600 dark:text-red-400 mb-4">Error loading tools: {error}</p>
+                    <button 
+                        onClick={() => window.location.reload()} 
+                        className="px-4 py-2 bg-primary-accent text-text-on-accent rounded-md hover:opacity-85"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <>
@@ -55,11 +81,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onInitiateToolActi
                 <div className="p-3 sm:p-4 lg:p-6 pb-6 sm:pb-8 bg-light-bg-page dark:bg-dark-bg-page">
                     <div className="max-w-4xl mx-auto px-2">
                         <h2 className="font-serif text-xl sm:text-2xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4 sm:mb-5">Featured Tools</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                            {featuredTools.map(tool => (
-                                <ToolCard key={tool.id} tool={tool} onInitiateToolActivation={onInitiateToolActivation} isFavorite={favoriteTools.includes(tool.id)} onToggleFavorite={onToggleFavorite} />
-                            ))}
-                        </div>
+                        {featuredTools.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                                {featuredTools.map(tool => (
+                                    <ToolCard key={tool.id} tool={tool} onInitiateToolActivation={onInitiateToolActivation} isFavorite={favoriteTools.includes(tool.id)} onToggleFavorite={onToggleFavorite} />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-12 text-light-text-tertiary dark:text-dark-text-tertiary">
+                                <p>No featured tools available at the moment.</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

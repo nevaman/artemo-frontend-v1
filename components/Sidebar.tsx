@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import type { View, Project, Tool, ChatHistoryItem } from '../types';
-import { allTools } from '../constants';
+import type { View, Project, DynamicTool, ChatHistoryItem } from '../types';
+import { useTools } from '../hooks/useTools';
 import {
     ArtemoFullLogo, PlusIcon, SearchIcon, DashboardIcon, BoxIcon, HistoryIcon,
     UsersIcon, EditIcon, MessageSquareIcon, MailIcon, FileTextIcon,
@@ -20,7 +20,7 @@ interface SidebarProps {
     favoriteTools: string[];
     recentTools: string[];
     chatHistory: ChatHistoryItem[];
-    onInitiateToolActivation: (tool: Tool) => void;
+    onInitiateToolActivation: (tool: DynamicTool) => void;
     onClearHistory: () => void;
     onOpenRenameModal: (item: { id: string; name: string; type: 'project' | 'chat' }) => void;
     onDeleteProject: (projectId: string) => void;
@@ -153,6 +153,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     searchTerm, onSearchChange, favoriteTools, recentTools, chatHistory,
     onInitiateToolActivation, onClearHistory, onOpenRenameModal, onDeleteProject, onDeleteChat
 }) => {
+    const { tools } = useTools();
+    
     const navItems: { view: View; icon: React.ReactNode; label: string }[] = [
         { view: 'dashboard-view', icon: <DashboardIcon className="w-4 h-4" />, label: 'Dashboard' },
         { view: 'all-tools-view', icon: <BoxIcon className="w-4 h-4" />, label: 'All Tools' },
@@ -170,8 +172,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { view: 'other-flows-view', icon: <BellIcon className="w-4 h-4" />, label: 'Other' },
     ];
 
-    const favToolsData = favoriteTools.map(id => allTools.find(t => t.id === id)).filter(Boolean) as Tool[];
-    const recentToolsData = recentTools.map(id => allTools.find(t => t.id === id)).filter(Boolean) as Tool[];
+    const favToolsData = favoriteTools.map(id => tools.find(t => t.id === id)).filter(Boolean) as DynamicTool[];
+    const recentToolsData = recentTools.map(id => tools.find(t => t.id === id)).filter(Boolean) as DynamicTool[];
 
     return (
         <aside className={`fixed lg:relative top-0 left-0 h-full w-[280px] bg-light-bg-sidebar dark:bg-dark-bg-sidebar border-r border-light-border dark:border-dark-border flex flex-col p-4 z-50 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>

@@ -1,12 +1,12 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import type { Tool, Message, ChatHistoryItem, Project } from '../types';
-import { toolScripts } from '../constants';
+import type { DynamicTool, Message, ChatHistoryItem, Project, ChatSession } from '../types';
+import { ApiService } from '../services/api';
 import * as Icons from './Icons';
 import { ChatMessage } from './ChatMessage';
 
 interface ToolInterfaceViewProps {
-    tool: Tool;
+    tool: DynamicTool;
     onBack: () => void;
     onSaveChat: (chat: Omit<ChatHistoryItem, 'id'>) => void;
     projects: Project[];
@@ -87,31 +87,48 @@ const ProjectSelector: React.FC<{
 
 export const ToolInterfaceView: React.FC<ToolInterfaceViewProps> = ({ tool, onBack, onSaveChat, projects, onNewProject }) => {
     const [messages, setMessages] = useState<Message[]>([]);
-    const [answers, setAnswers] = useState<string[]>([]);
-    const [currentStep, setCurrentStep] = useState(0); // 0 = initial, 1...n = questions, n+1 = finished
+    const [chatSession, setChatSession] = useState<ChatSession>({
+        id: Date.now().toString(),
+        toolId: tool.id,
+        currentQuestionIndex: 0,
+        answers: [],
+        isComplete: false
+    });
     const [isThinking, setIsThinking] = useState(false);
     const [attachedFile, setAttachedFile] = useState<File | null>(null);
     const [currentProjectId, setCurrentProjectId] = useState<string | null>(projects[0]?.id || null);
+    const [isGeneratingFinalResponse, setIsGeneratingFinalResponse] = useState(false);
     
-    const script = toolScripts[tool.id] || toolScripts.default;
+    const api = ApiService.getInstance();
+    const sortedQuestions = [...tool.questions].sort((a, b) => a.order - b.order);
 
     useEffect(() => {
         setMessages([]);
-        setAnswers([]);
-        setCurrentStep(0);
+        setChatSession({
+            id: Date.now().toString(),
+            toolId: tool.id,
+            currentQuestionIndex: 0,
+            answers: [],
+            isComplete: false
+        });
         setIsThinking(true);
         setAttachedFile(null);
+        setIsGeneratingFinalResponse(false);
         
         setTimeout(() => {
+            const firstQuestion = sortedQuestions[0];
+            const initialMessage = firstQuestion 
+                ? `Hello! I'm ready to help you with ${tool.title}. ${firstQuestion.label}`
+                : `Hello! I'm ready to help you with ${tool.title}. How can I assist you today?`;
+                
             setMessages([{
                 id: 'init-message',
                 sender: 'ai',
-                text: script.initialMessage
+                text: initialMessage
             }]);
-            setCurrentStep(1);
             setIsThinking(false);
         }, 1000);
-    }, [tool.id, script]);
+    }, [tool.id, tool.title, sortedQuestions]);
 
     useEffect(() => {
         return () => {
@@ -127,8 +144,8 @@ export const ToolInterfaceView: React.FC<ToolInterfaceViewProps> = ({ tool, onBa
         };
     }, [messages, tool, onSaveChat, currentProjectId]);
 
-    const handleSendMessage = (text: string) => {
-        if (currentStep > script.questions.length) return;
+    const handleSendMessage = async (text: string) => {
+        if (chatSession.isComplete) return;
 
         const userMessage: Message = { 
             id: Date.now().toString(), 
@@ -139,26 +156,83 @@ export const ToolInterfaceView: React.FC<ToolInterfaceViewProps> = ({ tool, onBa
         setMessages(prev => [...prev, userMessage]);
         setAttachedFile(null);
         
-        const newAnswers = [...answers, text];
-        setAnswers(newAnswers);
+        const newAnswers = [...chatSession.answers, text];
+        const newSession = {
+            ...chatSession,
+            answers: newAnswers,
+            currentQuestionIndex: chatSession.currentQuestionIndex + 1
+        };
+        setChatSession(newSession);
 
         setIsThinking(true);
-        setTimeout(() => {
-            if (currentStep <= script.questions.length) {
-                const nextQuestion = script.questions[currentStep - 1];
-                const aiQuestion: Message = { id: (Date.now() + 1).toString(), sender: 'ai', text: nextQuestion };
+        
+        try {
+            // Check if there are more questions
+            if (newSession.currentQuestionIndex < sortedQuestions.length) {
+                // Ask next question
+                setTimeout(() => {
+                    const nextQuestion = sortedQuestions[newSession.currentQuestionIndex];
+                    const aiQuestion: Message = { 
+                        id: (Date.now() + 1).toString(), 
+                        sender: 'ai', 
+                        text: nextQuestion.label 
+                    };
+                    setMessages(prev => [...prev, aiQuestion]);
+                    setIsThinking(false);
+                }, 800);
+            } else {
+                // All questions answered, generate final response
+                setIsGeneratingFinalResponse(true);
+                const allMessages = [...messages, userMessage];
+                
+                // Read knowledge base file if attached
+                let knowledgeBaseContent = '';
+                if (attachedFile) {
+                    knowledgeBaseContent = await readFileContent(attachedFile);
+                }
+                
+                const response = await api.sendChatMessage(tool.id, allMessages, knowledgeBaseContent);
+                
+                if (response.success && response.data) {
+                    const finalAiResponse: Message = { 
+                        id: (Date.now() + 2).toString(), 
+                        sender: 'ai', 
+                        text: response.data 
+                    };
+                    setMessages(prev => [...prev, finalAiResponse]);
+                    setChatSession(prev => ({ ...prev, isComplete: true }));
+                } else {
+                    const errorMessage: Message = {
+                        id: (Date.now() + 2).toString(),
+                        sender: 'ai',
+                        text: 'I apologize, but I encountered an error generating your response. Please try again or contact support if the issue persists.'
+                    };
+                    setMessages(prev => [...prev, errorMessage]);
+                }
+                
+                setIsThinking(false);
+                setIsGeneratingFinalResponse(false);
+            }
+        } catch (error) {
+            console.error('Error in chat flow:', error);
+            const errorMessage: Message = {
+                id: (Date.now() + 2).toString(),
+                sender: 'ai',
+                text: 'I apologize, but I encountered an error. Please try again.'
+            };
                 setMessages(prev => [...prev, aiQuestion]);
-                setCurrentStep(prev => prev + 1);
-            }
-            
-            if (currentStep === script.questions.length) {
-                const finalResponseText = script.finalResponseGenerator(tool.title, newAnswers);
-                const finalAiResponse: Message = { id: (Date.now() + 2).toString(), sender: 'ai', text: finalResponseText };
-                setMessages(prev => [...prev, finalAiResponse]);
-                setCurrentStep(prev => prev + 1);
-            }
             setIsThinking(false);
-        }, 1200);
+            setIsGeneratingFinalResponse(false);
+            }
+    };
+
+    const readFileContent = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target?.result as string || '');
+            reader.onerror = reject;
+            reader.readAsText(file);
+        });
     };
 
     return (
@@ -186,20 +260,26 @@ export const ToolInterfaceView: React.FC<ToolInterfaceViewProps> = ({ tool, onBa
             <div className="flex-grow overflow-y-auto">
                 <div className="max-w-3xl mx-auto p-4 md:p-6 space-y-4">
                     {messages.map(msg => <ChatMessage key={msg.id} message={msg} />)}
-                    {isThinking && <ThinkingIndicator />}
+                    {isThinking && <ThinkingIndicator isGeneratingFinal={isGeneratingFinalResponse} />}
                 </div>
             </div>
 
             <div className="flex-shrink-0 p-4 bg-light-bg-page dark:bg-dark-bg-page">
                 <div className="max-w-3xl mx-auto">
-                     <p className="text-center text-sm text-light-text-tertiary dark:text-dark-text-tertiary mb-2">
-                        Click the <Icons.PaperclipIcon className="w-3.5 h-3.5 inline-block mx-0.5" /> icon to add a Knowledge Base file to your prompt.
-                    </p>
+                    {!chatSession.isComplete && (
+                        <p className="text-center text-sm text-light-text-tertiary dark:text-dark-text-tertiary mb-2">
+                            {chatSession.currentQuestionIndex < sortedQuestions.length 
+                                ? `Question ${chatSession.currentQuestionIndex + 1} of ${sortedQuestions.length}`
+                                : 'Click the 📎 icon to add a Knowledge Base file to your prompt.'
+                            }
+                        </p>
+                    )}
                     <ChatInput 
                         onSendMessage={handleSendMessage} 
-                        disabled={isThinking || currentStep > script.questions.length}
+                        disabled={isThinking}
                         attachedFile={attachedFile}
                         setAttachedFile={setAttachedFile}
+                        placeholder={chatSession.isComplete ? "Ask for revisions or changes..." : "Type your answer here..."}
                     />
                 </div>
             </div>
@@ -208,11 +288,12 @@ export const ToolInterfaceView: React.FC<ToolInterfaceViewProps> = ({ tool, onBa
 };
 
 const ChatInput: React.FC<{
-    onSendMessage: (text: string) => void;
+    onSendMessage: (text: string) => Promise<void>;
     disabled: boolean;
     attachedFile: File | null;
     setAttachedFile: (file: File | null) => void;
-}> = ({ onSendMessage, disabled, attachedFile, setAttachedFile }) => {
+    placeholder?: string;
+}> = ({ onSendMessage, disabled, attachedFile, setAttachedFile, placeholder = "Type your message here..." }) => {
     const [text, setText] = useState('');
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -230,10 +311,10 @@ const ChatInput: React.FC<{
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if ((text.trim() || attachedFile) && !disabled) {
-            onSendMessage(text.trim());
+            await onSendMessage(text.trim());
             setText('');
         }
     };
@@ -262,7 +343,7 @@ const ChatInput: React.FC<{
                             }
                         }}
                         rows={1}
-                        placeholder={disabled ? "Waiting for response..." : "Type your message here..."}
+                        placeholder={disabled ? "Waiting for response..." : placeholder}
                         className="prompt-input w-full border-none outline-none bg-transparent p-2 text-base text-light-text-primary dark:text-dark-text-primary font-medium resize-none leading-normal max-h-48 overflow-y-auto"
                         disabled={disabled}
                     />
@@ -284,13 +365,20 @@ const ChatInput: React.FC<{
     );
 };
 
-const ThinkingIndicator = () => (
+const ThinkingIndicator: React.FC<{ isGeneratingFinal?: boolean }> = ({ isGeneratingFinal = false }) => (
     <div className="flex items-start gap-3">
         <Icons.ArtemoIcon className="w-8 h-8 flex-shrink-0" />
-        <div className="p-3 rounded-lg bg-light-bg-component dark:bg-dark-bg-component flex items-center space-x-1.5 mt-1">
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+        <div className="p-3 rounded-lg bg-light-bg-component dark:bg-dark-bg-component mt-1">
+            <div className="flex items-center space-x-1.5 mb-1">
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+            </div>
+            {isGeneratingFinal && (
+                <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
+                    Generating your content...
+                </p>
+            )}
         </div>
     </div>
 );

@@ -1,7 +1,7 @@
 
 import React from 'react';
-import type { View, Tool, ChatHistoryItem, Project } from '../types';
-import { allTools } from '../constants';
+import type { View, DynamicTool, ChatHistoryItem, Project } from '../types';
+import { useTools } from '../hooks/useTools';
 import { DashboardView } from './DashboardView';
 import { ToolGridView } from './ToolGridView';
 import { AllToolsView } from './AllToolsView';
@@ -11,8 +11,8 @@ import { ArtemoFullLogo, MenuIcon, MoonIcon, SunIcon, HelpCircleIcon } from './I
 
 interface MainContentProps {
     currentView: View;
-    selectedTool: Tool | null;
-    onInitiateToolActivation: (tool: Tool) => void;
+    selectedTool: DynamicTool | null;
+    onInitiateToolActivation: (tool: DynamicTool) => void;
     onNavigate: (view: View) => void;
     onToggleTheme: () => void;
     theme: 'light' | 'dark';
@@ -46,44 +46,40 @@ export const MainContent: React.FC<MainContentProps> = ({
     onOpenRenameModal,
     onDeleteProject,
 }) => {
+    const { toolsByCategory } = useTools();
+
     const renderView = () => {
         if (currentView === 'tool-interface-view' && selectedTool) {
             return <ToolInterfaceView tool={selectedTool} onBack={() => onNavigate('dashboard-view')} onSaveChat={onSaveChat} projects={projects} onNewProject={onNewProject} />;
         }
         
-        const normalizedSearch = searchTerm.toLowerCase().trim();
-        const filteredTools = allTools.filter(tool => 
-            tool.title.toLowerCase().includes(normalizedSearch) || 
-            tool.category.replace(/_/g, ' ').toLowerCase().includes(normalizedSearch)
-        );
-
         const toolGridProps = { onInitiateToolActivation, favoriteTools, onToggleFavorite };
 
         switch (currentView) {
             case 'dashboard-view':
                 return <DashboardView {...toolGridProps} />;
             case 'all-tools-view':
-                return <AllToolsView tools={filteredTools} showNoResults={searchTerm.length > 0 && filteredTools.length === 0} searchTerm={searchTerm} onSearchChange={onSearchChange} {...toolGridProps} />;
+                return <AllToolsView searchTerm={searchTerm} onSearchChange={onSearchChange} {...toolGridProps} />;
             case 'all-projects-view':
                 return <AllProjectsView projects={projects} onNewProject={onNewProject} onOpenRenameModal={onOpenRenameModal} onDeleteProject={onDeleteProject} />;
             case 'history-view':
                 return <div className="p-4 lg:p-6"><h2 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary">History</h2><p>Your recent activity will appear here.</p></div>;
             case 'client-management-view':
-                return <ToolGridView title="Client Management Tools" tools={allTools.filter(t => t.category === 'CLIENT_MANAGEMENT')} {...toolGridProps} />;
+                return <ToolGridView title="Client Management Tools" tools={toolsByCategory('CLIENT_MANAGEMENT')} {...toolGridProps} />;
             case 'copy-improvement-view':
-                return <ToolGridView title="Copy Improvement Tools" tools={allTools.filter(t => t.category === 'COPY_IMPROVEMENT')} {...toolGridProps} />;
+                return <ToolGridView title="Copy Improvement Tools" tools={toolsByCategory('COPY_IMPROVEMENT')} {...toolGridProps} />;
             case 'ad-copy-view':
-                return <ToolGridView title="Ad Copy Tools" tools={allTools.filter(t => t.category === 'AD_COPY')} {...toolGridProps} />;
+                return <ToolGridView title="Ad Copy Tools" tools={toolsByCategory('AD_COPY')} {...toolGridProps} />;
             case 'email-copy-view':
-                return <ToolGridView title="Email Copy Tools" tools={allTools.filter(t => t.category === 'EMAIL_COPY')} {...toolGridProps} />;
+                return <ToolGridView title="Email Copy Tools" tools={toolsByCategory('EMAIL_COPY')} {...toolGridProps} />;
             case 'long-form-view':
-                return <ToolGridView title="Long Form Content Tools" tools={allTools.filter(t => t.category === 'LONG_FORM')} {...toolGridProps} />;
+                return <ToolGridView title="Long Form Content Tools" tools={toolsByCategory('LONG_FORM')} {...toolGridProps} />;
             case 'podcast-tools-view':
-                return <ToolGridView title="Podcast Tools" tools={allTools.filter(t => t.category === 'PODCAST_TOOLS')} {...toolGridProps} />;
+                return <ToolGridView title="Podcast Tools" tools={toolsByCategory('PODCAST_TOOLS')} {...toolGridProps} />;
             case 'sales-funnel-copy-view':
-                return <ToolGridView title="Sales & Funnel Copy Tools" tools={allTools.filter(t => t.category === 'SALES_FUNNEL_COPY')} {...toolGridProps} />;
+                return <ToolGridView title="Sales & Funnel Copy Tools" tools={toolsByCategory('SALES_FUNNEL_COPY')} {...toolGridProps} />;
             case 'other-flows-view':
-                return <ToolGridView title="Other Tools" tools={allTools.filter(t => t.category === 'OTHER_FLOWS')} {...toolGridProps} />;
+                return <ToolGridView title="Other Tools" tools={toolsByCategory('OTHER_FLOWS')} {...toolGridProps} />;
             default:
                 return <DashboardView {...toolGridProps} />;
         }

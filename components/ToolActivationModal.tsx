@@ -1,16 +1,16 @@
 
 import React, { useState } from 'react';
-import type { Tool } from '../types';
+import type { DynamicTool } from '../types';
 import * as Icons from './Icons';
 
 interface ToolActivationModalProps {
-    tool: Tool | null;
+    tool: DynamicTool | null;
     onClose: () => void;
-    onStart: (tool: Tool) => void;
+    onStart: (tool: DynamicTool) => void;
     onSetDontShowAgain: (toolId: string, shouldAdd: boolean) => void;
 }
 
-const categoryIcons: { [key in Tool['category']]: React.FC<{ className?: string }> } = {
+const categoryIcons: { [key in DynamicTool['category']]: React.FC<{ className?: string }> } = {
     AD_COPY: Icons.MessageSquareIcon,
     CLIENT_MANAGEMENT: Icons.UsersIcon,
     COPY_IMPROVEMENT: Icons.EditIcon,
@@ -48,13 +48,24 @@ export const ToolActivationModal: React.FC<ToolActivationModalProps> = ({ tool, 
                     <Icon className="w-16 h-16 text-primary-accent mx-auto mb-5" />
                     <h3 className="font-serif text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-3">{tool.title}</h3>
                     <p className="text-light-text-secondary dark:text-dark-text-secondary mb-6 text-lg leading-relaxed">{tool.description}</p>
+                    <div className="mb-6">
+                        <div className="flex items-center justify-center gap-4 text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
+                            <span>Powered by {tool.primaryModel}</span>
+                            {tool.questions.length > 0 && (
+                                <span>• {tool.questions.length} questions</span>
+                            )}
+                            {tool.featured && (
+                                <span className="text-yellow-600 dark:text-yellow-400">• Featured</span>
+                            )}
+                        </div>
+                    </div>
                     <a href="#" className="text-primary-accent font-medium text-base hover:underline mb-8 inline-block">Watch tutorial</a>
                     
                     <button 
                         onClick={handleStartClick} 
                         className="w-full px-5 py-3 rounded-md text-lg font-medium bg-primary-accent text-text-on-accent hover:opacity-85 transition-opacity"
                     >
-                        Start
+                        Start {tool.title}
                     </button>
 
                      <div className="mt-6 text-left">
