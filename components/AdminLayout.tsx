@@ -77,7 +77,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ currentView, onNavigat
 
         <div className="border-t border-light-border dark:border-dark-border pt-4">
           <button 
-            onClick={() => onNavigate('dashboard-view')}
+            onClick={() => {
+              // Force a page reload to exit admin mode and return to main app
+              window.location.href = window.location.origin;
+            }}
             className="flex items-center gap-3 w-full px-4 py-3 rounded-md text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-page dark:hover:bg-dark-bg-page hover:text-light-text-primary dark:hover:text-dark-text-primary"
           >
             <LogOutIcon className="w-5 h-5" />
