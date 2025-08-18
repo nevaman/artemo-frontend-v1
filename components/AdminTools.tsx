@@ -237,9 +237,9 @@ export const AdminTools: React.FC = () => {
         <div className="fixed inset-0 bg-black/40 dark:bg-black/50 z-50 flex items-center justify-center p-4">
           <div className={`bg-light-bg-component dark:bg-dark-bg-component rounded-lg shadow-lg transition-all duration-300 ${
             isMaximized 
-              ? 'w-[95vw] h-[95vh] max-w-none' 
+              ? 'w-[98vw] h-[98vh] max-w-none max-h-none' 
               : 'w-full max-w-2xl max-h-[90vh]'
-          } overflow-y-auto`}>
+          } flex flex-col overflow-hidden`}>
             <div className="p-6 border-b border-light-border dark:border-dark-border">
               <div className="flex justify-between items-center">
                 <h3 className="font-serif text-xl font-bold text-light-text-primary dark:text-dark-text-primary">
@@ -276,7 +276,7 @@ export const AdminTools: React.FC = () => {
               </div>
             </div>
             
-            <div className={`p-6 ${isMaximized ? 'h-[calc(95vh-140px)] overflow-y-auto' : ''}`}>
+            <div className={`p-6 flex-1 overflow-y-auto ${isMaximized ? 'min-h-0 flex-grow' : ''}`}>
               {currentStep === 1 && (
                 <div className="space-y-4">
                   <div>
@@ -387,7 +387,7 @@ export const AdminTools: React.FC = () => {
                       onChange={(e) => setFormData(prev => ({ ...prev, promptInstructions: e.target.value }))}
                       rows={isMaximized ? 20 : 6}
                       placeholder="You are an expert copywriter..."
-                      className="w-full p-3 border border-light-border dark:border-dark-border rounded-md bg-light-bg-component dark:bg-dark-bg-component text-light-text-primary dark:text-dark-text-primary focus:ring-2 focus:ring-primary-accent focus:border-primary-accent outline-none resize-y"
+                     className="w-full p-3 border border-light-border dark:border-dark-border rounded-md bg-light-bg-component dark:bg-dark-bg-component text-light-text-primary dark:text-dark-text-primary focus:ring-2 focus:ring-primary-accent focus:border-primary-accent outline-none resize-none"
                     />
                   </div>
                 </div>
@@ -405,7 +405,7 @@ export const AdminTools: React.FC = () => {
                       Add Question
                     </button>
                   </div>
-                  <div className={`space-y-3 ${isMaximized ? 'max-h-[60vh]' : 'max-h-96'} overflow-y-auto`}>
+                  <div className={`space-y-3 ${isMaximized ? 'max-h-[calc(98vh-300px)]' : 'max-h-96'} overflow-y-auto`}>
                     {formData.questions.map((question, index) => (
                       <div key={question.id} className="border border-light-border dark:border-dark-border rounded-md p-4">
                         <div className="flex justify-between items-start mb-3">
@@ -462,7 +462,7 @@ export const AdminTools: React.FC = () => {
               )}
             </div>
 
-            <div className="p-6 border-t border-light-border dark:border-dark-border flex justify-between">
+            <div className="p-6 border-t border-light-border dark:border-dark-border flex justify-between flex-shrink-0">
               <div>
                 {currentStep > 1 && (
                   <button
