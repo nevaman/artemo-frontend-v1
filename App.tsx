@@ -11,8 +11,8 @@ import { AdminTools } from './components/AdminTools';
 import { AdminUsers } from './components/AdminUsers';
 import { NewProjectModal } from './components/NewProjectModal';
 import { ToolActivationModal } from './components/ToolActivationModal';
-import { useSupabaseTools } from './hooks/useSupabaseTools';
-import { useSupabaseCategories } from './hooks/useSupabaseCategories';
+import { useTools, useCategories } from './hooks/useTools';
+import { useCategories } from './hooks/useCategories';
 import type { DynamicTool, View, Project, ToolCategory, ChatHistoryItem } from './types';
 import { XIcon } from './components/Icons';
 
@@ -108,8 +108,8 @@ const AppContent: React.FC = () => {
     const [itemToRename, setItemToRename] = useState<{ id: string; name: string; type: 'project' | 'chat' } | null>(null);
 
     // Use dynamic tools and categories
-    const { tools } = useSupabaseTools();
-    const { categories } = useSupabaseCategories();
+    const { tools } = useTools();
+    const { categories } = useCategories();
 
     useEffect(() => {
         const root = window.document.documentElement;

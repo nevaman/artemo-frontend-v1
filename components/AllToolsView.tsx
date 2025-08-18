@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import type { DynamicTool, ToolCategory } from '../types';
-import { useSupabaseTools } from '../hooks/useSupabaseTools';
+import { useTools } from '../hooks/useTools';
 import { ToolCard } from './ToolCard';
 import { ChevronDownIcon, UsersIcon, EditIcon, MessageSquareIcon, MailIcon, FileTextIcon, MicIcon, ActivityIcon, BellIcon, SearchIcon } from './Icons';
 
@@ -78,7 +78,7 @@ const CollapsibleCategory: React.FC<{
 
 export const AllToolsView: React.FC<AllToolsViewProps> = ({ onInitiateToolActivation, favoriteTools, onToggleFavorite, searchTerm = '', onSearchChange }) => {
     const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
-    const { tools, loading, error } = useSupabaseTools();
+    const { tools, loading, error } = useTools();
 
     const handleSearchChange = (value: string) => {
         setLocalSearchTerm(value);

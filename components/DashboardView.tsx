@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import type { DynamicTool } from '../types';
-import { useSupabaseTools } from '../hooks/useSupabaseTools';
+import { useTools } from '../hooks/useTools';
 import { ToolCard } from './ToolCard';
 import { SendIcon, XIcon } from './Icons';
 
@@ -13,7 +13,7 @@ interface DashboardViewProps {
 
 export const DashboardView: React.FC<DashboardViewProps> = ({ onInitiateToolActivation, favoriteTools, onToggleFavorite }) => {
     const [prompt, setPrompt] = useState('persuasive email for a new product launch');
-    const { featuredTools, loading, error } = useSupabaseTools();
+    const { featuredTools, loading, error } = useTools();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {

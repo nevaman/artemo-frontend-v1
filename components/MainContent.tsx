@@ -1,7 +1,7 @@
 
 import React from 'react';
 import type { View, DynamicTool, ChatHistoryItem, Project } from '../types';
-import { useSupabaseTools } from '../hooks/useSupabaseTools';
+import { useTools } from '../hooks/useTools';
 import { DashboardView } from './DashboardView';
 import { ToolGridView } from './ToolGridView';
 import { AllToolsView } from './AllToolsView';
@@ -46,7 +46,7 @@ export const MainContent: React.FC<MainContentProps> = ({
     onOpenRenameModal,
     onDeleteProject,
 }) => {
-    const { toolsByCategory } = useSupabaseTools();
+    const { toolsByCategory } = useTools();
 
     const renderView = () => {
         if (currentView === 'tool-interface-view' && selectedTool) {
