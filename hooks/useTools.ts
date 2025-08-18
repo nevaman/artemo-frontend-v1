@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ApiService } from '../services/api';
+import { SupabaseApiService } from '../services/supabaseApi';
 import type { DynamicTool, ToolsApiResponse } from '../types';
 
 export const useTools = () => {
@@ -7,7 +7,7 @@ export const useTools = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const api = ApiService.getInstance();
+  const api = SupabaseApiService.getInstance();
 
   const fetchTools = async () => {
     setLoading(true);
@@ -21,12 +21,7 @@ export const useTools = () => {
       }
     } catch (err) {
       console.error('Error fetching tools:', err);
-      setError('Using mock data - database not connected');
-      // Fallback to mock data when Supabase isn't available
-      const mockResponse = await api.getTools();
-      if (mockResponse.success && mockResponse.data) {
-        setTools(mockResponse.data);
-      }
+      setError('Failed to connect to database. Please check your Supabase configuration.');
     } finally {
       setLoading(false);
     }

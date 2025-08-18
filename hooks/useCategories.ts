@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ApiService } from '../services/api';
+import { SupabaseApiService } from '../services/supabaseApi';
 import type { AdminCategory, CategoriesApiResponse } from '../types';
 
 export const useCategories = () => {
@@ -7,7 +7,7 @@ export const useCategories = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const api = ApiService.getInstance();
+  const api = SupabaseApiService.getInstance();
 
   const fetchCategories = async () => {
     setLoading(true);
@@ -21,12 +21,7 @@ export const useCategories = () => {
       }
     } catch (err) {
       console.error('Error fetching categories:', err);
-      setError('Using mock data - database not connected');
-      // Fallback to mock data when Supabase isn't available
-      const mockResponse = await api.getCategories();
-      if (mockResponse.success && mockResponse.data) {
-        setCategories(mockResponse.data.sort((a, b) => a.displayOrder - b.displayOrder));
-      }
+      setError('Failed to connect to database. Please check your Supabase configuration.');
     } finally {
       setLoading(false);
     }

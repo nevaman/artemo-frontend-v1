@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import type { View, Project, DynamicTool, ChatHistoryItem } from '../types';
-import { useTools } from '../hooks/useTools';
+import { useSupabaseTools } from '../hooks/useSupabaseTools';
 import {
     ArtemoFullLogo, PlusIcon, SearchIcon, DashboardIcon, BoxIcon, HistoryIcon,
     UsersIcon, EditIcon, MessageSquareIcon, MailIcon, FileTextIcon,
@@ -164,7 +164,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     searchTerm, onSearchChange, favoriteTools, recentTools, chatHistory,
     onInitiateToolActivation, onClearHistory, onOpenRenameModal, onDeleteProject, onDeleteChat
 }) => {
-    const { tools } = useTools();
+    const { tools } = useSupabaseTools();
     
     const navItems: { view: View; icon: React.ReactNode; label: string }[] = [
         { view: 'dashboard-view', icon: <DashboardIcon className="w-4 h-4" />, label: 'Dashboard' },
