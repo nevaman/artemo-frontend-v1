@@ -1,32 +1,9 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 
-// Simple test component to verify app loads
-const TestApp: React.FC = () => {
-  return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-800 mb-4">Artemo AI Dashboard</h1>
-        <p className="text-gray-600 mb-4">App is loading successfully!</p>
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-      </div>
-    </div>
-  );
-};
-
-// Import components conditionally to avoid errors
-let AuthWrapper: any;
-let useAuth: any;
-
-try {
-  AuthWrapper = require('./components/AuthWrapper').AuthWrapper;
-  useAuth = require('./hooks/useAuth').useAuth;
-} catch (error) {
-  console.error('❌ Error importing components:', error);
-  // If imports fail, we'll handle it in the main App component below
-}
-
-// If imports successful, continue with full app
+// Import components using ES modules
+import { AuthWrapper } from './components/AuthWrapper';
+import { useAuth } from './hooks/useAuth';
 import { Sidebar } from './components/Sidebar';
 import { MainContent } from './components/MainContent';
 import { AdminLayout } from './components/AdminLayout';
@@ -408,12 +385,6 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
     console.log('🎯 App component rendering...');
     
-    // Test if basic React is working
-    if (!AuthWrapper || !useAuth) {
-        console.log('⚠️ Components not loaded, showing test app');
-        return <TestApp />;
-    }
-
     return (
         <ErrorBoundary>
             <AuthWrapper>
