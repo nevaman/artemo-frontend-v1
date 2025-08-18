@@ -1,9 +1,8 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
+import { createClient } from '@supabase/supabase-js';
+import { SessionContextProvider, useSession, useSupabaseClient } from '@supabase/auth-helpers-react';
 
 // Import components using ES modules
-import { AuthWrapper } from './components/AuthWrapper';
-import { useAuth } from './hooks/useAuth';
 import { Sidebar } from './components/Sidebar';
 import { MainContent } from './components/MainContent';
 import { AdminLayout } from './components/AdminLayout';
@@ -13,10 +12,21 @@ import { AdminTools } from './components/AdminTools';
 import { AdminUsers } from './components/AdminUsers';
 import { NewProjectModal } from './components/NewProjectModal';
 import { ToolActivationModal } from './components/ToolActivationModal';
+import { LoginForm } from './components/LoginForm';
 import { useTools, useCategories } from './hooks/useTools';
 import { useCategories } from './hooks/useCategories';
 import type { DynamicTool, View, Project, ToolCategory, ChatHistoryItem } from './types';
 import { XIcon } from './components/Icons';
+
+// Create Supabase client
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env.local file');
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Add error boundary
 class ErrorBoundary extends React.Component<
@@ -69,7 +79,7 @@ const RenameModal: React.FC<{
 }> = ({ item, onClose, onRename }) => {
     const [name, setName] = useState('');
 
-    useEffect(() => {
+    React.useEffect(() => {
         if (item) {
             setName(item.name);
         }
@@ -113,9 +123,13 @@ const RenameModal: React.FC<{
     );
 };
 
-
-const AppContent: React.FC = () => {
-    const { isAdmin, user, profile } = useAuth();
+// Auth-aware component that uses Supabase Auth Helpers
+const AuthenticatedApp: React.FC = () => {
+    const session = useSession();
+    const supabase = useSupabaseClient();
+    const [userProfile, setUserProfile] = useState<any>(null);
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [profileLoading, setProfileLoading] = useState(true);
     
     // Force light theme initially to avoid flash
     const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -156,10 +170,48 @@ const AppContent: React.FC = () => {
     const { tools } = useTools();
     const { categories } = useCategories();
 
-    useEffect(() => {
+    // Fetch user profile when session changes
+    React.useEffect(() => {
+        const fetchUserProfile = async () => {
+            if (!session?.user) {
+                setUserProfile(null);
+                setIsAdmin(false);
+                setProfileLoading(false);
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .from('user_profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+
+                if (error) {
+                    console.log('Profile not found, user might need to be set up as admin');
+                    setUserProfile(null);
+                    setIsAdmin(true); // Allow admin setup for users without profiles
+                } else {
+                    setUserProfile(data);
+                    setIsAdmin(data.role === 'admin' && data.active === true);
+                }
+            } catch (error) {
+                console.error('Error fetching profile:', error);
+                setUserProfile(null);
+                setIsAdmin(true); // Allow admin setup on error
+            } finally {
+                setProfileLoading(false);
+            }
+        };
+
+        fetchUserProfile();
+    }, [session, supabase]);
+
+    React.useEffect(() => {
         const root = window.document.documentElement;
         root.classList.remove(theme === 'light' ? 'dark' : 'light');
         root.classList.add(theme);
+        localStorage.setItem('theme', theme);
     }, [theme]);
 
     const handleToggleTheme = useCallback(() => {
@@ -181,7 +233,7 @@ const AppContent: React.FC = () => {
         if (view !== 'all-tools-view') {
             setSearchTerm('');
         }
-    }, []);
+    }, [isAdminMode]);
 
     const addRecentTool = (toolId: string) => {
         setRecentTools(prev => {
@@ -274,6 +326,18 @@ const AppContent: React.FC = () => {
         setItemToRename(null);
     }, [itemToRename]);
 
+    // Show loading while profile is being fetched
+    if (profileLoading) {
+        return (
+            <div className="min-h-screen bg-light-bg-page dark:bg-dark-bg-page flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-accent mx-auto mb-4"></div>
+                    <p className="text-light-text-secondary dark:text-dark-text-secondary">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
     // Render admin interface
     if (isAdminMode) {
         const renderAdminView = () => {
@@ -352,12 +416,12 @@ const AppContent: React.FC = () => {
             </div>
             
             {/* Admin Access Button - Only show for admins */}
-            {(isAdmin || (user && !profile)) && (
+            {isAdmin && (
                 <button
                     onClick={() => handleNavigate('admin-dashboard')}
                     className="fixed bottom-4 right-4 px-4 py-2 bg-red-600 text-white rounded-md shadow-lg hover:bg-red-700 transition-colors z-50 text-sm"
                 >
-                    {isAdmin ? 'Admin Panel' : 'Setup Admin'}
+                    {userProfile ? 'Admin Panel' : 'Setup Admin'}
                 </button>
             )}
             
@@ -382,16 +446,45 @@ const AppContent: React.FC = () => {
     );
 };
 
+// Main App component with Session Provider
 const App: React.FC = () => {
     console.log('🎯 App component rendering...');
     
     return (
         <ErrorBoundary>
-            <AuthWrapper>
-                <AppContent />
-            </AuthWrapper>
+            <SessionContextProvider supabaseClient={supabase}>
+                <AuthApp />
+            </SessionContextProvider>
         </ErrorBoundary>
     );
+};
+
+// Auth logic component
+const AuthApp: React.FC = () => {
+    const session = useSession();
+    const isLoading = !session && typeof session === 'undefined';
+
+    console.log('🔍 Auth state:', { hasSession: !!session, isLoading, userEmail: session?.user?.email });
+
+    // Show loading spinner while checking auth
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-light-bg-page dark:bg-dark-bg-page flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-accent mx-auto mb-4"></div>
+                    <p className="text-light-text-secondary dark:text-dark-text-secondary">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Show login form if no session
+    if (!session) {
+        return <LoginForm />;
+    }
+
+    // Show main app if authenticated
+    return <AuthenticatedApp />;
 };
 
 console.log('✅ App component defined successfully');

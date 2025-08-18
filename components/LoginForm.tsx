@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { ArtemoFullLogo, EyeIcon, EyeOffIcon } from './Icons';
 
 export const LoginForm: React.FC = () => {
@@ -11,7 +11,7 @@ export const LoginForm: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { signIn, signUp } = useAuth();
+  const supabase = useSupabaseClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,25 +20,26 @@ export const LoginForm: React.FC = () => {
 
     try {
       if (isLogin) {
-        await signIn(email, password);
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+        if (error) throw error;
       } else {
         if (!fullName.trim()) {
           setError('Full name is required');
           return;
         }
-        const result = await signUp(email, password, fullName);
-        
-        // If signup successful but no session, try to sign in
-        if (result && !result.session) {
-          console.log('🔄 Signup successful, attempting automatic sign in...');
-          try {
-            await signIn(email, password);
-          } catch (signInError) {
-            console.log('⚠️ Auto sign-in failed, user will need to sign in manually');
-            setIsLogin(true);
-            setError('Account created successfully! Please sign in with your credentials.');
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName
+            }
           }
-        }
+        });
+        if (error) throw error;
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred');
@@ -57,7 +58,7 @@ export const LoginForm: React.FC = () => {
               {isLogin ? 'Welcome back' : 'Create account'}
             </h1>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mt-2">
-              {isLogin ? 'Sign in to your account' : 'Get started with Artemo AI (no email verification required)'}
+              {isLogin ? 'Sign in to your account' : 'Get started with Artemo AI'}
             </p>
           </div>
 
