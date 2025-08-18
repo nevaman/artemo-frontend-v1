@@ -69,10 +69,9 @@ export const useAuth = () => {
           setIsAdmin(false)
         }
       } finally {
-        console.log('✅ Initial auth check complete, setting loading to false')
+        console.log('✅ Initial auth check complete')
         if (mounted) {
           setLoading(false)
-          console.log('✅ Loading set to false, user:', !!currentUser)
         }
       }
     }
@@ -117,6 +116,10 @@ export const useAuth = () => {
             setIsAdmin(false)
           }
         }
+        
+        if (mounted) {
+          // Don't set loading to false here - let the initial check handle it
+        }
       }
     )
 
@@ -124,7 +127,7 @@ export const useAuth = () => {
       mounted = false
       subscription.unsubscribe()
     }
-  }, [])
+  }, []) // Empty dependency array - run only once
 
   const signIn = async (email: string, password: string) => {
     try {
